@@ -53,7 +53,7 @@
   /* Header with title */
   .domain-landing-header {
     display: flex;
-    justify-content: center;
+    gap: 15px;
     align-items: center;
     width: 100%;
     color: #333;
@@ -63,7 +63,6 @@
     font-size: 2rem;
     font-weight: 700;
     color: #333;
-    margin-top: 30px;
   }
   
   /* Grid for the cards */
@@ -156,4 +155,15 @@
     .domain-landing-card-grid {
       grid-template-columns: 1fr;
     }
+  }
+
+  a.domain-landing-card-link {
+    text-decoration: none !important;
+  }
+   
+  a.domain-landing-card-link:hover,
+  a.domain-landing-card-link:focus,
+  a.domain-landing-card-link:active,
+  a.domain-landing-card-link:visited {
+    text-decoration: none !important;
   }
