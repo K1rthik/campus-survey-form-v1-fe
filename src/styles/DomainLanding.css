@@ -1,0 +1,159 @@
+/* Container for the entire page */
+.domain-landing-main-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+  }
+  
+  /* Background image */
+  .domain-landing-background-image-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1; /* Place behind other content */
+  }
+  
+  .domain-landing-background-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Cover the entire container */
+    opacity: 1; /* Set opacity to 1 to show the background fully */
+  }
+
+  .domain-landing-form-logo-container {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    z-index: 10;
+  }
+  
+  .domain-landing-form-logo {
+    height: 20px;  /* adjust as needed */
+    width: 80px;
+  }  
+  
+  /* Main content container - NO BACKGROUND */
+  .domain-landing-container {
+    /* Removed background properties to make the main container transparent */
+    padding: 40px;
+    width: 90%;
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
+  
+  /* Header with title */
+  .domain-landing-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    color: #333;
+  }
+  
+  .domain-landing-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #333;
+    margin-top: 30px;
+  }
+  
+  /* Grid for the cards */
+  .domain-landing-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+  }
+  
+  /* Individual card styling */
+  .domain-landing-card {
+    border-radius: 10px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    /* Removed specific color backgrounds here */
+    background: transparent; /* Ensure card itself has no background color */
+  }
+  
+  .domain-landing-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Glassmorphism effect on the card contents */
+  .domain-landing-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.3); /* Glassmorphic background color */
+    backdrop-filter: blur(5px);
+    z-index: 0;
+    border-radius: 10px;
+  }
+  
+  .domain-landing-card-content {
+    z-index: 1; /* Ensure content is on top of the pseudo-element */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    color: black; /* Changed font color to black for better contrast */
+  }
+  
+  .domain-landing-card-left, .domain-landing-card-right {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    flex-grow: 1;
+  }
+  
+  .domain-landing-card-image {
+    width: 110px;
+    height: 110px;
+    object-fit: contain;
+  }
+  
+  .domain-landing-card-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0;
+  }
+  
+  .domain-landing-card-subtitle {
+    font-size: 0.9rem;
+    font-weight: 400;
+    margin: 0;
+    opacity: 0.8;
+  }
+  
+  /* Specific card colors are removed as per request */
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .domain-landing-container {
+      padding: 20px;
+    }
+    .domain-landing-title {
+      font-size: 1.5rem;
+    }
+    .domain-landing-card-grid {
+      grid-template-columns: 1fr;
+    }
+  }

@@ -1,0 +1,299 @@
+/* Overall page wrapper with the light red background color */
+.menu-form-wrapper-alt {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    width: 100%;
+    position: relative;
+    background-color: #fcf6f4; /* Very light red/orange from the image */
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Container for the success animation to be centered on a white background */
+.success-lottie-container-alt {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10; /* Ensure it's on top of everything */
+}
+
+/* Main blur container with a gradient and backdrop filter */
+.menu-form-blur-container {
+    position: relative;
+    width: 90%;
+    max-width: 500px;
+    height: auto;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.6), rgba(255, 245, 235, 0.6));
+    backdrop-filter: blur(4px);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+    overflow: hidden; /* Hide the overflowing Lottie animation */
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Lottie animation container */
+.menu-form-lottie-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    filter: blur(10px) opacity(0.7);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Content wrapper to place above the blurred Lottie */
+.menu-form-content {
+    position: relative;
+    z-index: 1;
+    padding: 10px;
+}
+
+/* Header styling */
+.menu-form-header-alt {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.menu-form-back-button-alt {
+    background: #fef7f2;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #ff8c42; /* A shade of orange from the UI */
+    transition: background-color 0.3s ease;
+}
+
+.menu-form-back-button-alt:hover {
+    background-color: #fde8d8;
+}
+
+.menu-form-title-alt {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 0 20px;
+    flex-grow: 1;
+    text-align: left;
+    color: #333;
+}
+
+/* Form grid layout */
+.menu-form-grid-alt {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Form group for each input field */
+.menu-form-group-alt {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.menu-form-label-alt {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.menu-label-icon {
+    font-size: 1.2rem;
+    color: #ff8c42; /* Orange icon color */
+}
+
+.menu-form-input-alt,
+.menu-form-select-alt,
+.menu-form-textarea-alt {
+    width: 100%;
+    padding: 12px 15px;
+    border: none;
+    border-radius: 8px;
+    background: #fef7f2; /* Light orange background */
+    font-size: 1rem;
+    color: #333;
+    transition: all 0.3s ease;
+}
+
+.menu-form-input-alt:focus,
+.menu-form-select-alt:focus,
+.menu-form-textarea-alt:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(255, 140, 66, 0.5);
+    background: #fde8d8;
+}
+
+.menu-form-input-alt.disabled {
+    background: #fde8d8;
+    color: #6c757d;
+    cursor: not-allowed;
+}
+
+.menu-form-input-alt::placeholder,
+.menu-form-textarea-alt::placeholder {
+    color: #a0a0a0;
+}
+
+/* Selfie group styling */
+.selfie-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.menu-selfie-button-alt {
+    width: 100%;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px;
+    background: #e53935; /* Blue color for selfie button */
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 4px 10px rgba(226, 109, 74, 0.3);
+}
+
+.menu-selfie-button-alt:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(226, 109, 74, 0.3);
+}
+
+.selfie-icon-alt {
+    font-size: 1.5rem;
+}
+
+.selfie-preview-alt {
+    margin-top: 15px;
+    width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Textarea styling */
+.menu-form-textarea-alt {
+    resize: vertical;
+    min-height: 100px;
+    padding-left: 15px;
+}
+
+/* Submit button styling */
+.menu-form-submit-button-alt {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 8px;
+    background: #e53935; /* Blue color for submit button */
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 4px 15px rgba(226, 109, 74, 0.3);
+}
+
+.menu-form-submit-button-alt:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(226, 109, 74, 0.3);
+}
+
+.menu-form-error-alt {
+    color: #e53935;
+    font-size: 0.8rem;
+    margin-top: 5px;
+    font-weight: 500;
+}
+
+.menu-signature-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+}
+
+.menu-signature-heading {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #555;
+    margin-top: 10px;
+}
+
+.menu-signature-canvas {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #fefcfb;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.menu-signature-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    width: 100%;
+}
+
+.clear-button-alt {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px;
+    background: #e0e0e0;
+    color: #555;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.clear-button-alt:hover {
+    background-color: #d0d0d0;
+}
+
+.menu-submit-button-alt {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 8px;
+    background: #e53935; 
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 6px 20px rgba(226, 109, 74, 0.3);
+}
+
+.menu-submit-button-alt:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(226, 109, 74, 0.3);
+}

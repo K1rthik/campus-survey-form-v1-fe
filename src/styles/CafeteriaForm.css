@@ -1,0 +1,276 @@
+/* CafeteriaForm.css */
+
+/* Overall page wrapper with the light coffee background color */
+.cafeteria-form-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    width: 100%;
+    position: relative;
+    background-color: #f4f0e6; /* Light coffee color */
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Main blur container with a gradient and backdrop filter */
+.cafeteria-form-blur-container {
+    position: relative;
+    width: 90%;
+    max-width: 500px;
+    height: auto;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.6), rgba(240, 230, 210, 0.6));
+    backdrop-filter: blur(4px);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Lottie animation container */
+.cafeteria-form-lottie-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    filter: blur(5px) opacity(0.65);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Content wrapper to place above the blurred Lottie */
+.cafeteria-form-content {
+    position: relative;
+    z-index: 1;
+    padding: 10px;
+}
+
+/* Header styling */
+.cafeteria-form-header {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    color: #5d4037;
+    margin-bottom: 20px;
+}
+
+.cafeteria-form-back-button {
+    background: #fefcf2;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #8b4513; /* A shade of brown */
+    transition: background-color 0.3s ease;
+}
+
+.cafeteria-form-back-button:hover {
+    background-color: #fde8d8;
+}
+
+.cafeteria-form-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 0 20px;
+    flex-grow: 1;
+    text-align: left;
+    color: #5d4037;
+}
+
+/* Form grid layout */
+.cafeteria-form-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Form group for each input field */
+.cafeteria-form-group {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.cafeteria-form-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #5d4037;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cafeteria-label-icon {
+    font-size: 1.2rem;
+    color: #8b4513; /* Brown icon color */
+}
+
+.cafeteria-form-input,
+.cafeteria-form-select,
+.cafeteria-form-textarea {
+    width: 100%;
+    padding: 12px 15px;
+    border: none;
+    border-radius: 8px;
+    background: #fefcf2; /* Light coffee background */
+    font-size: 1rem;
+    color: #333;
+    transition: all 0.3s ease;
+}
+
+.cafeteria-form-input:focus,
+.cafeteria-form-select:focus,
+.cafeteria-form-textarea:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(139, 69, 19, 0.5);
+    background: #f5f0e8;
+}
+
+.cafeteria-form-input.disabled {
+    background: #e8e2d7;
+    color: #6c757d;
+    cursor: not-allowed;
+}
+
+.cafeteria-form-input::placeholder,
+.cafeteria-form-textarea::placeholder {
+    color: #a0a0a0;
+}
+
+/* Selfie group styling */
+.selfie-button {
+    width: 100%;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px;
+    background: #a0522d; /* Sienna color for selfie button */
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 4px 10px rgba(160, 82, 45, 0.3);
+}
+
+.selfie-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(160, 82, 45, 0.3);
+}
+
+.selfie-icon {
+    font-size: 1.5rem;
+}
+
+.selfie-preview {
+    margin-top: 15px;
+    width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Textarea styling */
+.cafeteria-form-textarea {
+    resize: vertical;
+    min-height: 100px;
+    padding-left: 15px;
+}
+
+/* Submit button styling */
+.cafeteria-form-submit-button {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 8px;
+    background: #8b4513;
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 4px 15px rgba(139, 69, 19, 0.2);
+}
+
+.cafeteria-form-submit-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(139, 69, 19, 0.3);
+}
+
+.cafeteria-form-error {
+    color: #c0392b;
+    font-size: 0.8rem;
+    margin-top: 5px;
+    font-weight: 500;
+}
+
+.cafeteria-signature-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+}
+
+.cafeteria-signature-heading {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #5d4037;
+    margin-top: 10px;
+}
+
+.cafeteria-signature-canvas {
+    border: 1px solid #dcd7ca;
+    border-radius: 8px;
+    background-color: #fefcfb;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.cafeteria-signature-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    width: 100%;
+}
+
+.clear-button,
+.cafeteria-submit-button {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.clear-button {
+    background: #e0d9c4;
+    color: #5d4037;
+}
+
+.clear-button:hover {
+    background-color: #d0c8b6;
+}
+
+.cafeteria-submit-button {
+    background: #a0522d;
+    color: white;
+    width: auto;
+}
+
+.cafeteria-submit-button:hover {
+    background-color: #8b4513;
+}

@@ -1,0 +1,186 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300..700;1,300..700&display=swap');
+
+@font-face {
+  font-family: 'LEDFont';
+  src: url('../fonts/LED.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.landing-container {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  position: relative;
+  transition: background 1.2s ease;
+  font-family: "Cormorant", serif;
+  justify-content: center;
+  align-items: center;
+}
+
+.landing-form-logo-container {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  z-index: 10;
+}
+
+.landing-form-logo {
+  height: 15px;  /* adjust as needed */
+  width: 60px;
+}  
+
+.single-section {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  color: white;
+  transition: all 1.2s ease;
+}
+
+.get-started-container {
+  position: relative;
+  z-index: 10;
+  max-width: 480px;
+  margin-top: 30px;
+}
+
+.title {
+  font-family: "LEDFont", sans-serif;
+  font-size: 1.4rem;
+  letter-spacing: 1px;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  text-shadow: 0 0 40px rgba(169, 160, 230, 0.95);
+  line-height: 1.1;
+}
+
+.subtitle {
+  font-size: 1rem;
+  font-weight: 400;
+  /* margin-bottom: 3rem; */
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.5;
+}
+
+.btn-get-started {
+  background: linear-gradient(90deg, #6442cc 0%, #4b2b7a 100%);
+  font-size: 1.3rem;
+  color: white;
+  padding: 0.5rem 3rem;
+  border: none;
+  border-radius: 40px;
+  cursor: pointer;
+  border: 1px solid #a18fff;
+  box-shadow: 0 8px 30px rgba(132, 105, 242, 0.8);
+  filter: drop-shadow(0 0 15px #8469f2);
+  transition: all 0.4s ease;
+}
+
+.btn-get-started:hover {
+  box-shadow: 0 0 35px #c2a1ff, inset 0 -3px 25px #c2a1ff;
+  transform: translateY(-5px);
+}
+
+.particle {
+  position: absolute;
+  background: white;
+  border-radius: 50%;
+  opacity: 0.15;
+  pointer-events: none;
+  filter: drop-shadow(0 0 8px white);
+  animation-name: particleBlinkMove;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+@keyframes particleBlinkMove {
+  0% {
+    opacity: 0.15;
+    transform: translate(0, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(5px, -5px);
+  }
+}
+
+.background-animation {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 3;
+  transition: transform 1.3s ease;
+  object-fit: cover;
+}
+
+/* Fixed: Flip-up animation for landing page */
+.landing-container.animate .background-animation {
+  transform-origin: bottom center;
+  animation: flipUpMove 1.3s forwards ease-out;
+}
+
+@keyframes flipUpMove {
+  0% {
+    transform: rotateX(0deg) translateY(0);
+    opacity: 1;
+  }
+  50% {
+    transform: rotateX(45deg) translateY(-30vh);
+    opacity: 0.7;
+  }
+  100% {
+    transform: rotateX(90deg) translateY(-100vh);
+    opacity: 0;
+  }
+}
+
+.landing-container.animate .single-section {
+  transform: translateY(-100vh) rotateX(90deg);
+  filter: blur(10px);
+  opacity: 0;
+  transition: all 1.3s ease-out;
+  transform-origin: bottom center;
+}
+
+/* Fixed: Form container positioning and animation */
+.form-container {
+  position: fixed; /* Use fixed instead of absolute */
+  top: 100vh; /* Start below viewport */
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  opacity: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  overflow-y: auto;
+  transform: translateY(0); /* Ensure no initial transform */
+}
+
+/* When animation triggers, smoothly slide up from bottom */
+.landing-container.animate .form-container {
+  animation: slideUpFromBottom 1.3s ease-out 0.5s forwards;
+}
+
+@keyframes slideUpFromBottom {
+  0% {
+    top: 100vh;
+    opacity: 0;
+  }
+  100% {
+    top: 0;
+    opacity: 1;
+  }
+}

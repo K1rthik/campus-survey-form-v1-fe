@@ -1,0 +1,342 @@
+/* Import Google Fonts for a modern look */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Montserrat:wght@400;500;600&display=swap');
+
+@font-face {
+    font-family: 'CallistaCustomFont';
+    src: url('../fonts/Callista.ttf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+:root {
+    --primary-color: #7b68ee; /* A shade of purple from the image */
+    --secondary-color: #e0e0e0; /* Light gray for backgrounds */
+    --text-dark: #333;
+    --text-light: #555;
+    --error-color: #dc3545;
+    --white: #ffffff;
+    --shadow-light: 0 4px 15px rgba(0, 0, 0, 0.08);
+    --shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
+body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: var(--secondary-color); /* Overall page background */
+}
+
+/* Main wrapper for the entire form screen */
+.emp-form-main-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 1rem;
+    position: relative;
+    overflow-x: hidden; /* Prevents horizontal scrolling */
+    z-index: 10;
+}
+
+/* Background Image Container */
+.emp-form-background-image-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1; /* Place behind other content */
+    overflow: hidden; /* Ensure image doesn't spill */
+}
+
+.emp-form-background-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* This makes the image cover the entire container */
+    object-position: center; /* Centers the image */
+    /* Add hardware acceleration for smoother rendering */
+    transform: translateZ(0);
+}
+
+.emp-form-logo-container {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    z-index: 10;
+  }
+  
+  .emp-form-logo {
+    height: 20px;  /* adjust as needed */
+    width: 80px;
+  }  
+
+/* Main container for the form card */
+.emp-form-container {
+    /* Set the background to a semi-transparent white/blue */
+    background-color: rgba(255, 255, 255, 0.2); /* A light, transparent background */
+    /* Apply the frosted glass effect */
+    backdrop-filter: blur(5px) saturate(1.8); /* This is the core of glassmorphism */
+    -webkit-backdrop-filter: blur(10px) saturate(1.8); /* For Safari support */
+    /* Add a light, transparent border to define the shape */
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    /* Use a subtle box shadow for depth */
+    box-shadow: var(--shadow-light);
+    /* existing styling for layout and animation */
+    border-radius: 6px;
+    width: 100%;
+    max-width: 450px;
+    padding: 1.5rem;
+    margin: 1.5rem auto;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 1;
+    transition: transform 0.3s ease-out;
+    animation: slideInUp 0.6s ease-out forwards;
+    display: flex; /* Make it a flex container */
+    flex-direction: column; /* Stack children vertically */
+}
+
+@keyframes slideInUp {
+    from {
+        transform: translateY(50px) scale(0.95);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+/* Scrollable container for the form fields */
+.emp-form-scroll-container {
+    flex-grow: 1; /* Allows it to fill the available space */
+    max-height: 70vh; /* Adjust this value as needed for your layout */
+    overflow-y: auto;
+    padding-right: 15px; /* Adds space for the scrollbar to prevent content from touching the edge */
+    box-sizing: border-box;
+}
+
+/* Header for back button and title */
+.emp-form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2.5rem !important;
+    padding: 0 0.5rem;
+}
+
+.emp-form-back-button {
+    background: white;
+    border: none;
+    font-size: 1rem;
+    color: #7b68ee;
+    cursor: pointer;
+    padding: 0.2rem;
+    border-radius: 40%;
+    transition: background-color 0.2s ease;
+}
+
+.emp-form-back-button:hover {
+    background-color: var(--secondary-color);
+}
+
+.emp-form-header-right {
+    width: 1.2rem;
+}
+
+.emp-form-title {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    color: var(--text-dark);
+    font-size: 1.2rem;
+    margin: 0;
+    text-align: center;
+}
+
+/* Grid layout for inputs */
+.emp-form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.2rem; /* Spacing between form groups */
+}
+
+/* Individual form group */
+.emp-form-group {
+    display: flex;
+    flex-direction: column;
+    position: relative; /* For icon positioning if needed */
+}
+
+/* Label for inputs */
+.emp-form-label {
+    display: flex;
+    align-items: center;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.85rem;
+    color: var(--text-light);
+    margin-bottom: 0.4rem;
+    font-weight: 500;
+}
+
+.emp-form-icon {
+    margin-right: 0.5rem;
+    color: var(--primary-color); /* Icon color matches primary theme */
+    font-size: 1rem;
+}
+
+/* Input fields and select boxes */
+.emp-form-input,
+.emp-form-select {
+    width: 100%;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--secondary-color); /* Subtle border */
+    border-radius: 12px; /* Rounded input corners */
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.95rem;
+    color: var(--text-dark);
+    background-color: #fcfcfc;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box;
+}
+
+.emp-form-input::placeholder {
+    color: #a0a0a0;
+}
+
+.emp-form-input:focus,
+.emp-form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(123, 104, 238, 0.1); /* Subtle focus glow */
+    outline: none;
+    background-color: var(--white);
+}
+
+/* Select specific styling */
+.emp-form-select {
+    appearance: none; /* Remove default arrow */
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%237b68ee%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13.6-6.4H18.9c-5%200-9.3%203.3-11.4%208.7-2.1%205.4-0.3%2011.6%204.4%2015.4l127.3%20127.3c4.7%204.7%2012.3%204.7%2017%200l127.3-127.3c3.8-3.9%205.6-9.1%204.4-14.5z%22%2F%3E%3C%2Fsvg%3E');
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 0.8rem;
+    padding-right: 2.5rem; /* Space for the custom arrow */
+}
+
+/* Radio button group styling - Updated */
+.emp-form-radio-group {
+  display: flex;
+  flex-direction: column; /* Stacks items vertically */
+  gap: 0.8rem; /* Provides spacing between the rows */
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.emp-form-radio-label {
+  display: flex;
+  align-items: center;
+  background-color: #fcfcfc;
+  border: 1px solid var(--secondary-color);
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--text-dark);
+  transition: all 0.2s ease;
+  width: 100%; /* Ensures each radio button label takes up full width */
+  box-sizing: border-box; /* Includes padding and border in the element's total width and height */
+}
+
+.emp-form-radio-label:hover {
+  background-color: #f5f5f5;
+}
+
+.emp-form-radio-label input[type="radio"] {
+  margin-right: 0.5rem;
+  accent-color: var(--primary-color);
+}
+
+
+/* Error messages */
+.emp-form-error {
+    color: var(--error-color);
+    font-size: 0.75rem;
+    margin-top: 0.3rem;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Actions (buttons) */
+.emp-form-actions {
+    margin-top: 1.5rem;
+    text-align: center;
+}
+
+.emp-form-button {
+    width: 100%;
+    padding: 1.1rem 1.5rem;
+    background-color: var(--primary-color); /* Main button color */
+    color: var(--white);
+    border: none;
+    border-radius: 15px; /* Rounded button corners */
+    font-size: 1.1rem;
+    font-weight: 600;
+    font-family: 'Montserrat', sans-serif;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 5px 15px rgba(123, 104, 238, 0.3); /* Button shadow */
+}
+
+.emp-form-button:hover {
+    background-color: #6a5acd; /* Slightly darker purple on hover */
+    transform: translateY(-2px);
+    box-shadow: 0 7px 20px rgba(123, 104, 238, 0.4);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .emp-form-container {
+        padding: 1rem;
+        margin: 1rem auto;
+    }
+    .emp-form-title {
+        font-size: 1.3rem;
+    }
+    .emp-form-input,
+    .emp-form-select,
+    .emp-form-button {
+        padding: 0.8rem 1rem;
+        font-size: 0.9rem;
+    }
+    .emp-form-label {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .emp-form-container {
+        border-radius: 6px;
+        margin: 0.5rem auto;
+    }
+    .emp-form-header {
+        margin-bottom: 1rem;
+    }
+    .emp-form-title {
+        font-size: 1.3rem;
+    }
+    .emp-form-grid {
+        gap: 1rem;
+    }
+    .emp-form-button {
+        font-size: 1rem;
+    }
+}

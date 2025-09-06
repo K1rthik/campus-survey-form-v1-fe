@@ -1,0 +1,319 @@
+.security-form-wrapper-alt {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    width: 100%;
+    position: relative;
+    background-color: #f4f6fc;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .security-form-blur-container {
+    position: relative;
+    width: 90%;
+    max-width: 500px;
+    height: auto;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.6), rgba(235, 240, 255, 0.6));
+    backdrop-filter: blur(4px);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px 0 rgba(99, 122, 221, 0.15);
+    overflow: hidden;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+.security-form-lottie-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 85%; /* Reduced from 100% to ensure full visibility */
+    height: 85%; /* Reduced from 100% to ensure full visibility */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    filter: blur(10px) opacity(0.7);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Additional control over the Lottie animation elements */
+.security-form-lottie-container svg,
+.security-form-lottie-container canvas {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain; /* Ensures the animation fits without cropping */
+}
+  .security-form-content {
+    position: relative;
+    z-index: 1;
+    padding: 10px;
+    height: 100vh;
+    overflow: scroll;
+  }
+.security-form-content::-webkit-scrollbar{
+    display: none;
+}
+  .security-form-header-alt {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    color: #333;
+    margin-bottom: 20px;
+  }
+
+  .security-form-back-button-alt {
+    background: #ebf3ff;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #637add;
+    transition: background-color 0.3s ease;
+  }
+
+  .security-form-back-button-alt:hover {
+    background-color: #d4e8ff;
+  }
+
+  .security-form-title-alt {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0 0 0 20px;
+    flex-grow: 1;
+    text-align: left;
+    color: #333;
+  }
+
+  .security-form-grid-alt {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .security-form-group-alt {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .security-form-label-alt {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #01051881;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .security-label-icon {
+    font-size: 1.2rem;
+    color: #163adbde;
+  }
+
+  .security-form-input-alt,
+  .security-form-select-alt,
+  .security-form-textarea-alt {
+    width: 100%;
+    padding: 12px 15px;
+    border: none;
+    border-radius: 8px;
+    background: #ebf3ff;
+    font-size: 1rem;
+    color: #333;
+    transition: all 0.3s ease;
+  }
+
+  .security-form-input-alt:focus,
+  .security-form-select-alt:focus,
+  .security-form-textarea-alt:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(99, 122, 221, 0.5);
+    background: #d4e8ff;
+  }
+
+  .security-form-input-alt.disabled {
+    background: #d4e8ff;
+    color: #6c757d;
+    cursor: not-allowed;
+  }
+
+  .security-form-input-alt::placeholder,
+  .security-form-textarea-alt::placeholder {
+    color: #a0a0a0;
+  }
+
+  .image-button-alt {
+    width: 100%;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px;
+    background: #163adbde;
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 4px 10px rgba(99, 122, 221, 0.3);
+  }
+
+  .image-button-alt:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(99, 122, 221, 0.4);
+  }
+
+  .image-icon-alt {
+    font-size: 1.5rem;
+  }
+
+  .image-previews-alt {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+  }
+
+  .image-preview-alt {
+   margin-top: 15px;
+    width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .security-form-textarea-alt {
+    resize: vertical;
+    min-height: 100px;
+    padding-left: 15px;
+  }
+
+  .security-form-submit-button-alt {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 8px;
+    background: #163adbde;
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 6px 20px rgba(53, 94, 229, 0.3);
+  }
+
+  .security-form-submit-button-alt:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(53, 94, 229, 0.3);
+  }
+
+  .security-form-error-alt {
+    color: #e53935;
+    font-size: 0.8rem;
+    margin-top: 5px;
+    font-weight: 500;
+  }
+
+  
+.security-signature-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  width: 100%;
+}
+
+.security-signature-heading {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #555;
+  margin-top: 10px;
+}
+
+.security-signature-canvas {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fefcfb;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.security-signature-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  width: 100%;
+}
+
+.clear-button-alt {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 8px;
+  background: #e0e0e0;
+  color: #555;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.clear-button-alt:hover {
+  background-color: #d0d0d0;
+}
+
+.security-submit-button-alt {
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: 8px;
+  background: #163adbde; 
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 6px 20px rgba(53, 94, 229, 0.3);
+}
+
+.security-form-submit-button-alt:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(53, 94, 229, 0.3);
+}
+
+  @media (max-width: 768px) {
+    .security-form-blur-container {
+      width: 95%;
+      padding: 15px;
+    }
+
+    .security-form-title-alt {
+      font-size: 1.5rem;
+    }
+
+    .signature-canvas {
+      width: 350px;
+      height: 150px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .security-form-title-alt {
+      font-size: 1.4rem;
+      margin-left: 15px;
+    }
+
+    .signature-canvas {
+      width: 300px;
+      height: 120px;
+    }
+  }
