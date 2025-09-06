@@ -340,3 +340,19 @@ body {
         font-size: 1rem;
     }
 }
+
+.emp-form-back-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border: none;
+    font-size: 1rem;
+    color: #7b68ee;
+    cursor: pointer;
+    padding: 0.2rem;
+    border-radius: 50%;
+    height: 30px;
+    width: 30px;
+    transition: background-color 0.2s ease;
+}
