@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FaChevronLeft } from 'react-icons/fa';
-import { MdOutlineEventNote, MdOutlinePerson, MdOutlinePhone, MdGroup, MdOutlinePhotoCamera, MdOutlineBadge } from 'react-icons/md';
+import { MdOutlineEventNote, MdOutlinePerson, MdOutlinePhone, MdGroup, MdOutlinePhotoCamera, MdOutlineBadge, MdOutlineDateRange } from 'react-icons/md';
 import { TfiWrite } from 'react-icons/tfi';
 import Lottie from 'react-lottie';
 import SignaturePad from 'react-signature-canvas';
 import toast, { Toaster } from 'react-hot-toast';
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
+import { format } from 'date-fns';
 import buildingAnimation from '../assets/Building.json';
 import successAnimation from '../assets/success.json';
 import '../styles/OurCampus.css';
@@ -39,6 +42,7 @@ function OurCampus() {
 
     const [campusData, setCampusData] = useState({
         eventName: '',
+        eventDate: new Date(),
         name: '',
         mobileNumber: '',
         userType: '',
@@ -103,6 +107,13 @@ function OurCampus() {
             });
         }
     }, [selfiePreview]);
+
+     const handleDateChange = (date) => {
+        setCampusData(prevData => ({
+            ...prevData,
+            eventDate: date
+        }));
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -174,6 +185,7 @@ function OurCampus() {
         const newErrors = {};
         if (!campusData.eventName) newErrors.eventName = 'Event Name is required.';
         if (!campusData.name) newErrors.name = 'Name is required.';
+        if (!campusData.eventDate) newErrors.eventDate = 'Event Date is required.';
         if (!campusData.mobileNumber) {
             newErrors.mobileNumber = 'Mobile number is required.';
         } else if (!/^\d{10}$/.test(campusData.mobileNumber)) {
@@ -190,19 +202,19 @@ function OurCampus() {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = async (e) => {
+     const handleSubmit = async (e) => {
         e.preventDefault();
-
+ 
         if (!validateForm() || !campusData.signature) {
             toast.error('Please complete the form and add your signature.');
             return;
         }
-
+ 
         setIsSubmitting(true);
-
+ 
         try {
             const formDataToSend = new FormData();
-
+ 
             // Add ALL domain landing form data
             formDataToSend.append('firstName', formData.firstName || '');
             formDataToSend.append('lastName', formData.lastName || '');
@@ -212,7 +224,7 @@ function OurCampus() {
             formDataToSend.append('employeeId', formData.employeeId || '');
             formDataToSend.append('employeeType', formData.employeeType || '');
             formDataToSend.append('employeeStatus', formData.employeeStatus || '');
-
+ 
             // Add campus form data
             formDataToSend.append('eventName', campusData.eventName);
             formDataToSend.append('name', campusData.name);
@@ -220,23 +232,32 @@ function OurCampus() {
             formDataToSend.append('userType', campusData.userType);
             formDataToSend.append('staffId', campusData.staffId || '');
             formDataToSend.append('feedback', campusData.feedback);
-            
+ 
+            // Format date as DD/MM/YYYY for backend
+            if (campusData.eventDate) {
+                const day = campusData.eventDate.getDate().toString().padStart(2, '0');
+                const month = (campusData.eventDate.getMonth() + 1).toString().padStart(2, '0');
+                const year = campusData.eventDate.getFullYear();
+                const formattedDate = `${day}/${month}/${year}`;
+                formDataToSend.append('visitDate', formattedDate);
+            }
+ 
             if (campusData.selfieImage instanceof File) {
                 formDataToSend.append('selfieImage', campusData.selfieImage);
             }
             formDataToSend.append('signature', campusData.signature);
-
+ 
             const response = await fetch(`${API_BASE_URL}/campus-form/add-info`, {
                 method: 'POST',
                 body: formDataToSend
             });
-
+ 
             const result = await response.json();
-
+ 
             if (response.ok) {
                 toast.success('Feedback submitted successfully!');
                 setShowSuccess(true);
-
+ 
                 setTimeout(() => {
                     setShowSuccess(false);
                     navigate('/domain-landing', {
@@ -248,7 +269,7 @@ function OurCampus() {
             } else {
                 toast.error(result.error || 'Error submitting feedback.');
             }
-
+ 
         } catch (error) {
             console.error('Submit error:', error);
             toast.error('Network error. Please try again.');
@@ -300,6 +321,25 @@ function OurCampus() {
                                     disabled={isSubmitting}
                                 />
                                 {errors.eventName && <p className="campus-form-error-alt">{errors.eventName}</p>}
+                            </div>
+
+                             <div className="campus-form-group-alt">
+                                <label htmlFor="eventDate" className="campus-form-label-alt">
+                                    <MdOutlineDateRange className="campus-label-icon" />
+                                    Event Date
+                                </label>
+                                <DatePicker
+                                    id="eventDate"
+                                    selected={campusData.eventDate}
+                                    onChange={handleDateChange}
+                                    maxDate={new Date()}
+                                    minDate={new Date(new Date().setDate(new Date().getDate() - 6))}
+                                    dateFormat="dd/MM/yyyy"
+                                    placeholderText="Select event date"
+                                    className="campus-form-input-alt"
+                                    disabled={isSubmitting}
+                                />
+                                {errors.eventDate && <p className="campus-form-error-alt">{errors.eventDate}</p>}
                             </div>
 
                             {/* Name */}
