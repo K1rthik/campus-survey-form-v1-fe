@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FaChevronLeft } from 'react-icons/fa';
-import { MdOutlineEventNote, MdOutlinePerson, MdOutlinePhone, MdGroup, MdOutlinePhotoCamera } from 'react-icons/md';
+import { MdOutlineEventNote, MdOutlinePerson, MdOutlinePhone, MdGroup, MdOutlinePhotoCamera, MdOutlineDateRange} from 'react-icons/md';
 import { TfiWrite } from 'react-icons/tfi';
 import Lottie from 'react-lottie';
 import SignaturePad from 'react-signature-canvas';
 import toast, { Toaster } from 'react-hot-toast';
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
+import { format } from 'date-fns';
 import successAnimation from '../assets/success.json';
 import coffeeAnimation from '../assets/thecoffee1.json';
 import '../styles/CafeteriaForm.css';
@@ -103,6 +106,7 @@ function CafeteriaForm() {
 
   const [cafeteriaData, setCafeteriaData] = useState({
     eventName: '',
+    eventDate: new Date(),
     name: '',
     contact: '',
     visitorType: '',
@@ -178,6 +182,10 @@ function CafeteriaForm() {
     }
   }, [selfiePreview]);
 
+   const handleDateChange = (date) => {
+    setCafeteriaData(prev => ({ ...prev, eventDate: date }));
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setCafeteriaData(prev => ({ ...prev, [name]: value }));
@@ -250,6 +258,7 @@ function CafeteriaForm() {
   const validateForm = () => {
     const newErrors = {};
     if (!cafeteriaData.eventName) newErrors.eventName = 'Event Name is required.';
+    if (!cafeteriaData.eventDate) newErrors.eventDate = 'Event Date is required.';
     if (!cafeteriaData.name) newErrors.name = 'Name is required.';
     if (!cafeteriaData.contact) {
       newErrors.contact = 'Contact number is required.';
@@ -297,6 +306,7 @@ function CafeteriaForm() {
         employeeType: formData.employeeType || '',
         employeeId: formData.employeeId || '',
         eventName: cafeteriaData.eventName,
+        eventDate: cafeteriaData.eventDate ? format(cafeteriaData.eventDate, 'dd/MM/yyyy') : '',
         visitorType: cafeteriaData.visitorType,
         idNumber: cafeteriaData.visitorType === 'Staff' ? (cafeteriaData.idNumber || '') : '',
         feedback: cafeteriaData.feedback || '',
@@ -382,6 +392,23 @@ function CafeteriaForm() {
                   placeholder="Enter event name"
                 />
                 {errors.eventName && <p className="cafeteria-form-error">{errors.eventName}</p>}
+              </div>
+
+              <div className="cafeteria-form-group">
+                <label htmlFor="eventDate" className="cafeteria-form-label">
+                  <MdOutlineDateRange className="cafeteria-label-icon" />
+                  Event Date
+                </label>
+                <DatePicker
+                  id="eventDate"
+                  selected={cafeteriaData.eventDate}
+                  onChange={handleDateChange}
+                  maxDate={new Date()}
+                  minDate={new Date(new Date().setDate(new Date().getDate() - 6))}
+                  dateFormat="dd/MM/yyyy"
+                  className="cafeteria-form-input"
+                />
+                {errors.eventDate && <p className="cafeteria-form-error">{errors.eventDate}</p>}
               </div>
 
               <div className="cafeteria-form-group">
