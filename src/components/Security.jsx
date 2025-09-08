@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FaChevronLeft } from 'react-icons/fa';
-import { MdOutlinePerson, MdOutlinePhone, MdOutlineBadge, MdOutlineVerifiedUser, MdOutlineReportProblem, MdOutlinePhotoCamera } from 'react-icons/md';
+import { MdOutlinePerson, MdOutlinePhone, MdOutlineBadge, MdOutlineVerifiedUser, MdOutlineReportProblem, MdOutlinePhotoCamera,MdOutlineDateRange, MdOutlineEventNote } from 'react-icons/md';
 import Lottie from 'react-lottie';
 import SignaturePad from 'react-signature-canvas';
 import toast, { Toaster } from 'react-hot-toast';
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
+import { format } from 'date-fns';
 import protectedAnimation from '../assets/Security.json';
 import successAnimation from '../assets/success.json';
 import '../styles/Security.css';
@@ -37,7 +40,8 @@ function Security() {
     const formData = location.state?.formData || {};
 
     const [securityData, setSecurityData] = useState({
-        employeeName: '',
+        eventName: '',
+        eventDate: new Date(),
         name: '',
         mobileNumber: '',
         staffId: '',
@@ -100,6 +104,13 @@ function Security() {
             imageRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     }, [imagePreviews]);
+
+const handleDateChange = (date) => {
+        setSecurityData(prevData => ({
+            ...prevData,
+            eventDate: date
+        }));
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -175,6 +186,7 @@ function Security() {
     const validateForm = () => {
         const newErrors = {};
         if (!securityData.employeeName) newErrors.employeeName = 'Employee Name is required.';
+        if (!securityData.eventDate) newErrors.eventDate = 'Event Date is required.';
         if (!securityData.name) newErrors.name = 'Name is required.';
         if (!securityData.mobileNumber) {
             newErrors.mobileNumber = 'Mobile number is required.';
@@ -191,16 +203,18 @@ function Security() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
+ 
         if (!validateForm() || !securityData.signature) {
             toast.error('Please complete the form and add your signature.');
             return;
         }
-
+ 
         setIsSubmitting(true);
-
+ 
         try {
             const formDataToSend = new FormData();
+ 
+            // Add ALL domain landing form data
             formDataToSend.append('firstName', formData.firstName || '');
             formDataToSend.append('lastName', formData.lastName || '');
             formDataToSend.append('gender', formData.gender || '');
@@ -209,31 +223,43 @@ function Security() {
             formDataToSend.append('employeeId', formData.employeeId || '');
             formDataToSend.append('employeeType', formData.employeeType || '');
             formDataToSend.append('employeeStatus', formData.employeeStatus || '');
-
-            formDataToSend.append('employeeName', securityData.employeeName);
+ 
+            // Add security form data
+            formDataToSend.append('eventName', securityData.eventName);  // Changed from employeeName
             formDataToSend.append('name', securityData.name);
             formDataToSend.append('mobileNumber', securityData.mobileNumber);
             formDataToSend.append('staffId', securityData.staffId);
             formDataToSend.append('verification', securityData.verification);
             formDataToSend.append('incidentReport', securityData.incidentReport);
             formDataToSend.append('signature', securityData.signature);
-
+ 
+            // Format date as DD/MM/YYYY for backend
+            if (securityData.eventDate) {
+                const day = securityData.eventDate.getDate().toString().padStart(2, '0');
+                const month = (securityData.eventDate.getMonth() + 1).toString().padStart(2, '0');
+                const year = securityData.eventDate.getFullYear();
+                const formattedDate = `${day}/${month}/${year}`;
+                formDataToSend.append('eventDate', formattedDate);
+            }
+ 
+            // Add images
             securityData.images.forEach((image) => {
                 formDataToSend.append('images', image);
             });
-
+ 
             const response = await fetch(`${API_BASE_URL}/security-form/add-info`, {
                 method: 'POST',
                 body: formDataToSend
             });
-
+ 
             const result = await response.json();
-
+ 
             if (response.ok) {
-                toast.success('Feedback submitted successfully!');
+                toast.success('Security report submitted successfully!');
                 setShowSuccess(true);
                 setSecurityData({
-                    employeeName: '',
+                    eventName: '',
+                    eventDate: new Date(),
                     name: '',
                     mobileNumber: '',
                     staffId: '',
@@ -244,7 +270,7 @@ function Security() {
                 });
                 setImagePreviews([]);
                 setShowSignaturePad(false);
-
+ 
                 setTimeout(() => {
                     setShowSuccess(false);
                     navigate('/domain-landing', {
@@ -256,7 +282,7 @@ function Security() {
             } else {
                 toast.error(result.error || 'Error submitting security report.');
             }
-
+ 
         } catch (error) {
             console.error('Submit error:', error);
             toast.error('Network error. Please try again.');
@@ -292,19 +318,39 @@ function Security() {
 
                         <form className="security-form-grid-alt" noValidate ref={formRef}>
                             <div className="security-form-group-alt">
-                                <label htmlFor="employeeName" className="security-form-label-alt">
-                                    <MdOutlinePerson className="security-label-icon" />
-                                    Name of Employee
+                                <label htmlFor="eventName" className="security-form-label-alt">
+                                    <MdOutlineEventNote className="security-label-icon" />
+                                    Name of Event
                                 </label>
                                 <input
                                     type="text"
-                                    id="employeeName"
-                                    name="employeeName"
-                                    value={securityData.employeeName}
+                                    id="eventName"
+                                    name="eventName"
+                                    value={securityData.eventName}
                                     onChange={handleChange}
-                                    className="security-form-input-alt disabled"
+                                    className="security-form-input-alt"
+                                    placeholder="Enter event name"
+                                    disabled={isSubmitting}
                                 />
-                                {errors.employeeName && <p className="security-form-error-alt">{errors.employeeName}</p>}
+                                {errors.eventName && <p className="security-form-error-alt">{errors.eventName}</p>}
+                            </div>
+
+                            <div className="security-form-group-alt">
+                                <label htmlFor="eventDate" className="security-form-label-alt">
+                                    <MdOutlineDateRange className="security-label-icon" />
+                                    Event Date
+                                </label>
+                                <DatePicker
+                                    id="eventDate"
+                                    selected={securityData.eventDate}
+                                    onChange={handleDateChange}
+                                    maxDate={new Date()}
+                                    minDate={new Date(new Date().setDate(new Date().getDate() - 6))}
+                                    dateFormat="dd/MM/yyyy"
+                                    placeholderText="Select event date"
+                                    className="security-form-input-alt"
+                                    disabled={isSubmitting}
+                                />
                             </div>
 
                             <div className="security-form-group-alt">
