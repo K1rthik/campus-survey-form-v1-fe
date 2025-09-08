@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FaChevronLeft } from 'react-icons/fa';
-import { MdOutlineEventNote, MdOutlinePerson, MdOutlinePhone, MdGroup, MdOutlinePhotoCamera } from 'react-icons/md';
+import { MdOutlineEventNote, MdOutlinePerson, MdOutlinePhone, MdGroup, MdOutlinePhotoCamera, MdOutlineDateRange } from 'react-icons/md';
 import { TfiWrite } from 'react-icons/tfi';
 import Lottie from 'react-lottie';
 import SignaturePad from 'react-signature-canvas';
 import toast, { Toaster } from 'react-hot-toast';
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
+import { format } from 'date-fns';
 import successAnimation from '../assets/success.json';
 import foodAnimation from '../assets/themenu.json';
 import '../styles/MenuForm.css';
@@ -104,6 +107,7 @@ function MenuForm() {
 
   const [menuData, setMenuData] = useState({
     eventName: '',
+    eventDate: new Date(),
     name: '',
     contact: '',
     visitorType: '',
@@ -181,6 +185,13 @@ function MenuForm() {
     }
   }, [selfiePreview]);
 
+    const handleDateChange = (date) => {
+    setMenuData(prevData => ({
+      ...prevData,
+      eventDate: date
+    }));
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setMenuData(prevData => ({ ...prevData, [name]: value }));
@@ -252,6 +263,7 @@ function MenuForm() {
   const validateForm = () => {
     const newErrors = {};
     if (!menuData.eventName) newErrors.eventName = 'Event Name is required.';
+    if (!menuData.eventDate) newErrors.eventDate = 'Event Date is required.';
     if (!menuData.name) newErrors.name = 'Name is required.';
     if (!menuData.contact) {
       newErrors.contact = 'Contact number is required.';
@@ -293,6 +305,7 @@ function MenuForm() {
         employeeType: formData.employeeType || '',
         employeeId: formData.employeeId || '',
         eventName: menuData.eventName,
+        eventDate: menuData.eventDate ? format(menuData.eventDate, 'dd/MM/yyyy') : '',
         visitorType: menuData.visitorType,
         idNumber: menuData.visitorType === 'Staff' ? (menuData.idNumber || '') : '',
         feedback: menuData.feedback || '',
@@ -378,6 +391,24 @@ function MenuForm() {
                   placeholder="Enter event name"
                 />
                 {errors.eventName && <p className="menu-form-error-alt">{errors.eventName}</p>}
+              </div>
+
+              <div className="menu-form-group-alt">
+                <label htmlFor="eventDate" className="menu-form-label-alt">
+                <MdOutlineDateRange className="menu-label-icon" />
+                  Event Date
+                </label>
+                <DatePicker
+                  id="eventDate"
+                  selected={menuData.eventDate}
+                  onChange={handleDateChange}
+                  maxDate={new Date()}
+                  minDate={new Date(new Date().setDate(new Date().getDate() - 6))}
+                  dateFormat="dd/MM/yyyy"
+                  placeholderText="Select event date"
+                  className="menu-form-input-alt"
+                />
+                {errors.eventDate && <p className="menu-form-error-alt">{errors.eventDate}</p>}
               </div>
 
               <div className="menu-form-group-alt">
