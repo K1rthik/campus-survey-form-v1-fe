@@ -178,21 +178,21 @@ function EmployeeForm() {
                   <input
                     type="radio"
                     name="employeeStatus"
-                    value="Employee"
-                    checked={formData.employeeStatus === 'Employee'}
+                    value="Visitors"
+                    checked={formData.employeeStatus === 'Visitors'}
                     onChange={handleChange}
                   />
-                  Employee
+                  Visitor
                 </label>
                 <label className="emp-form-radio-label">
                   <input
                     type="radio"
                     name="employeeStatus"
-                    value="Entrepreneur"
-                    checked={formData.employeeStatus === 'Entrepreneur'}
+                    value="Employee"
+                    checked={formData.employeeStatus === 'Employee'}
                     onChange={handleChange}
                   />
-                  Entrepreneur
+                  Employee
                 </label>
                 <label className="emp-form-radio-label">
                   <input
@@ -208,11 +208,11 @@ function EmployeeForm() {
                   <input
                     type="radio"
                     name="employeeStatus"
-                    value="Visitors"
-                    checked={formData.employeeStatus === 'Visitors'}
+                    value="Entrepreneur"
+                    checked={formData.employeeStatus === 'Entrepreneur'}
                     onChange={handleChange}
                   />
-                  Visitor
+                  Entrepreneur
                 </label>
                 <label className="emp-form-radio-label">
                   <input
@@ -245,8 +245,8 @@ function EmployeeForm() {
                     required
                   >
                     <option value="">Select Type</option>
-                    <option value="External">External</option>
                     <option value="KGISL">KGISL</option>
+                    <option value="External">External</option>
                   </select>
                   {errors.employeeType && <p className="emp-form-error">{errors.employeeType}</p>}
                 </div>
