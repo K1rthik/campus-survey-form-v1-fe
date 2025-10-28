@@ -30,7 +30,12 @@
   height: 15px;  /* adjust as needed */
   width: 60px;
 }  
-
+.landing-form-logo1 {
+  height: 50px;  /* adjust as needed */
+  width: 200px;
+  padding-left:30px;
+  padding-right:30px;
+}  
 .single-section {
   position: relative;
   width: 100%;
