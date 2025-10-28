@@ -4,6 +4,7 @@ import rcbgAnimation from '../assets/rcbg.json';
 import kgisl_logo from '../assets/kgisl_logo.png';
 import EmployeeForm from './EmployeeForm';
 import '../styles/SurveyLanding.css';
+import logo from '../assets/siKgnature.png'
 
 const Particle = ({ style }) => {
   return <div className="particle" style={style} />;
@@ -42,6 +43,7 @@ const SurveyLanding = () => {
             <div className="get-started-container">
               <h1 className="title">Feedback Made Easy</h1>
               <p className="subtitle">Empower your voice with seamless, confidential employee surveys.</p>
+              <img src={logo} alt="KGISL Logo" className="landing-form-logo1" />
               <button className="btn-get-started" onClick={handleGetStarted}>Get Started</button>
             </div>
             {particles.map((p, i) => (
