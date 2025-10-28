@@ -4,7 +4,7 @@ import rcbgAnimation from '../assets/rcbg.json';
 import kgisl_logo from '../assets/kgisl_logo.png';
 import EmployeeForm from './EmployeeForm';
 import '../styles/SurveyLanding.css';
-import siKGlogo from '../assets/siKgnature.png'
+import siKGlogo from '../assets/siKGnature.png'
 
 const Particle = ({ style }) => {
   return <div className="particle" style={style} />;
