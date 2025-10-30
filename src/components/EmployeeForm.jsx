@@ -130,7 +130,7 @@ function EmployeeForm() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validate()) {
-      console.log('Form data submitted:', formData);
+      //console.log('Form data submitted:', formData);
       navigate('/domain-landing', {
         state: {
           formData,
@@ -138,7 +138,7 @@ function EmployeeForm() {
         }
       });
     } else {
-      console.log('Form has errors:', errors);
+      //console.log('Form has errors:', errors);
     }
   };
 
