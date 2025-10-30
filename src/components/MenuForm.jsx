@@ -357,11 +357,11 @@ function MenuForm() {
         signature: menuData.signature
       };
 
-      console.log('Payload to encrypt:', payload);
+      //console.log('Payload to encrypt:', payload);
 
       // Encrypt the payload
       const envelope = encryptClient(payload);
-      console.log('Encrypted envelope:', envelope);
+      //console.log('Encrypted envelope:', envelope);
 
       if (!envelope || !envelope.startsWith('v:1,')) {
         throw new Error('Encryption failed - invalid envelope format');
@@ -376,11 +376,11 @@ function MenuForm() {
         body: JSON.stringify({ envelope })
       });
 
-      console.log('Response status:', response.status);
+      //console.log('Response status:', response.status);
 
       // Get encrypted response
       const encryptedResult = await response.json();
-      console.log('Encrypted response:', encryptedResult);
+      //console.log('Encrypted response:', encryptedResult);
 
       // Decrypt response
       let result;
@@ -389,7 +389,7 @@ function MenuForm() {
           throw new Error('No envelope in response');
         }
         result = decryptClient(encryptedResult.envelope);
-        console.log('Decrypted result:', result);
+        //console.log('Decrypted result:', result);
       } catch (decryptError) {
         console.error('Decryption error:', decryptError);
         console.error('Response was:', encryptedResult);
@@ -398,7 +398,7 @@ function MenuForm() {
       }
 
       if (response.ok) {
-        console.log('Submission successful:', result);
+        //console.log('Submission successful:', result);
         setShowSuccess(true);
         toast.success(result.message || 'Feedback submitted successfully!');
         setTimeout(() => {
