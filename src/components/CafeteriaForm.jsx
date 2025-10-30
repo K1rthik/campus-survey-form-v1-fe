@@ -7,6 +7,7 @@ import Lottie from 'react-lottie';
 import SignaturePad from 'react-signature-canvas';
 import toast, { Toaster } from 'react-hot-toast';
 import DatePicker from 'react-datepicker';
+import * as CryptoJS from 'crypto-js';
 import "react-datepicker/dist/react-datepicker.css";
 import { format } from 'date-fns';
 import successAnimation from '../assets/success.json';
@@ -14,6 +15,69 @@ import coffeeAnimation from '../assets/thecoffee1.json';
 import '../styles/CafeteriaForm.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+// Encryption constants (must match server-side)
+const ENCRYPTION_KEY = 'aBfGhIjKlMnOpQrStUvWxYz012345678'; // Exactly 32 bytes for AES-256
+const ENCRYPTION_IV = '1234567890123456'; // Exactly 16 bytes for IV
+const VERSION_HEADER = 'v:1,';
+
+// Client-side encryption function
+function encryptClient(dataObject) {
+  try {
+    const jsonString = JSON.stringify(dataObject);
+    const key = CryptoJS.enc.Utf8.parse(ENCRYPTION_KEY);
+    const iv = CryptoJS.enc.Utf8.parse(ENCRYPTION_IV);
+    
+    const encrypted = CryptoJS.AES.encrypt(jsonString, key, {
+      iv: iv,
+      mode: CryptoJS.mode.CBC,
+      padding: CryptoJS.pad.Pkcs7
+    });
+    
+    return VERSION_HEADER + encrypted.toString();
+  } catch (error) {
+    console.error('Encryption error:', error);
+    throw error;
+  }
+}
+
+// Client-side decryption function
+function decryptClient(envelope) {
+  try {
+    if (!envelope || !envelope.startsWith(VERSION_HEADER)) {
+      throw new Error('Invalid envelope format: missing version header');
+    }
+    
+    const ciphertext = envelope.substring(VERSION_HEADER.length);
+    const key = CryptoJS.enc.Utf8.parse(ENCRYPTION_KEY);
+    const iv = CryptoJS.enc.Utf8.parse(ENCRYPTION_IV);
+    
+    const decrypted = CryptoJS.AES.decrypt(ciphertext, key, {
+      iv: iv,
+      mode: CryptoJS.mode.CBC,
+      padding: CryptoJS.pad.Pkcs7
+    });
+    
+    const jsonString = decrypted.toString(CryptoJS.enc.Utf8);
+    if (!jsonString) {
+      throw new Error('Decryption failed: empty result');
+    }
+    return JSON.parse(jsonString);
+  } catch (error) {
+    console.error('Decryption error:', error);
+    throw error;
+  }
+}
+
+// Helper function to convert File to Base64
+const fileToBase64 = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+};
 
 // Lottie animation options
 const defaultOptions = {
@@ -29,20 +93,6 @@ const successOptions = {
   animationData: successAnimation,
   rendererSettings: { preserveAspectRatio: 'xMidYMid slice' },
 };
-
-/* ---------------- Helpers ---------------- */
-
-// Convert dataURL -> Blob
-function dataURLtoBlob(dataUrl) {
-  const [header, data] = dataUrl.split(',');
-  const mimeMatch = header.match(/data:(.*?);base64/);
-  const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
-  const binary = atob(data);
-  const len = binary.length;
-  const u8 = new Uint8Array(len);
-  for (let i = 0; i < len; i++) u8[i] = binary.charCodeAt(i);
-  return new Blob([u8], { type: mime });
-}
 
 // Reads a File into an HTMLImageElement
 function fileToHTMLImage(file) {
@@ -77,7 +127,7 @@ async function imageToJpegBlob(img, { maxW = 1600, quality = 0.85 } = {}) {
 
 // Ensure any image File becomes a JPEG File (downscaled & compressed)
 async function normalizeToJpegFile(file, { maxW = 1600, quality = 0.85 } = {}) {
-  if (file.type === 'image/jpeg') return file; // already good
+  if (file.type === 'image/jpeg') return file;
   const img = await fileToHTMLImage(file);
   const blob = await imageToJpegBlob(img, { maxW, quality });
   const base = file.name.replace(/\.[^.]+$/, '');
@@ -97,8 +147,6 @@ function deriveNameParts(formData, data) {
   return { firstName: firstName || '', lastName: lastName || '' };
 }
 
-/* --------------- Component --------------- */
-
 function CafeteriaForm() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -112,8 +160,8 @@ function CafeteriaForm() {
     visitorType: '',
     idNumber: '',
     feedback: '',
-    selfie: null,     // File (JPEG)
-    signature: null,  // dataURL for signature (converted to Blob on submit)
+    selfie: null,
+    signature: null,
   });
 
   const [errors, setErrors] = useState({});
@@ -122,20 +170,17 @@ function CafeteriaForm() {
   const [showSignaturePad, setShowSignaturePad] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // Refs
   const sigCanvas = useRef({});
   const formRef = useRef(null);
   const signatureRef = useRef(null);
   const feedbackRef = useRef(null);
 
-  // One-time env sanity check
   useEffect(() => {
     if (!API_BASE_URL) {
       console.error('VITE_API_BASE_URL is missing! Check your environment config.');
     }
   }, []);
 
-  // Pre-fill from router state
   useEffect(() => {
     if (formData.firstName || formData.lastName) {
       const fullName = `${formData.firstName || ''} ${formData.lastName || ''}`.trim();
@@ -144,9 +189,7 @@ function CafeteriaForm() {
       try {
         const parsed = JSON.parse(cleanContact);
         if (typeof parsed === 'object' && parsed.contact) cleanContact = parsed.contact;
-      } catch (_) {
-        // keep as-is if not JSON
-      }
+      } catch (_) {}
 
       setCafeteriaData(prev => ({
         ...prev,
@@ -162,7 +205,6 @@ function CafeteriaForm() {
     }
   }, [formData]);
 
-  // Smooth scroll on focus
   useEffect(() => {
     if (!formRef.current) return;
     const formElements = formRef.current.querySelectorAll('input, textarea, select');
@@ -175,14 +217,13 @@ function CafeteriaForm() {
     };
   }, []);
 
-  // Scroll to feedback after selfie
   useEffect(() => {
     if (selfiePreview && feedbackRef.current) {
       feedbackRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [selfiePreview]);
 
-   const handleDateChange = (date) => {
+  const handleDateChange = (date) => {
     setCafeteriaData(prev => ({ ...prev, eventDate: date }));
   };
 
@@ -204,16 +245,13 @@ function CafeteriaForm() {
     if (!file) return;
 
     try {
-      // Hard cap to prevent decoding very large originals
       if (file.size > 10 * 1024 * 1024) {
         toast.error('Image too large. Please select a smaller image.');
         return;
       }
 
-      // Convert to JPEG if needed (also downsizes to max width 1600)
       const jpegFile = await normalizeToJpegFile(file, { maxW: 1600, quality: 0.85 });
 
-      // Enforce ≤ 5 MB after conversion (align with backend limit)
       if (jpegFile.size > 5 * 1024 * 1024) {
         toast.error('Image must be under 5 MB.');
         return;
@@ -221,7 +259,6 @@ function CafeteriaForm() {
 
       setCafeteriaData(prev => ({ ...prev, selfie: jpegFile }));
 
-      // Preview
       const reader = new FileReader();
       reader.onloadend = () => setSelfiePreview(reader.result);
       reader.readAsDataURL(jpegFile);
@@ -244,7 +281,6 @@ function CafeteriaForm() {
 
   const handleSignatureEnd = () => {
     if (!sigCanvas.current.isEmpty()) {
-      // Use JPEG for smaller size
       const dataUrl = sigCanvas.current.toDataURL('image/jpeg', 0.85);
       setCafeteriaData(prev => ({ ...prev, signature: dataUrl }));
     }
@@ -283,22 +319,23 @@ function CafeteriaForm() {
       return;
     }
 
-    // Ensure email is present since backend/DB requires it
     if (!formData.email || !String(formData.email).trim()) {
       toast.error('Email is required.');
       return;
     }
 
     try {
-      const form = new FormData();
+      // Convert selfie and signature to Base64
+      const selfieBase64 = await fileToBase64(cafeteriaData.selfie);
 
-      // Derive names for backend NOT NULL columns
+      // Derive names for backend
       const { firstName, lastName } = deriveNameParts(formData, cafeteriaData);
 
-      // Only append fields the backend expects (strings)
-      const safePayload = {
+      // Create payload object
+      const payload = {
         firstName,
         lastName,
+        name: cafeteriaData.name,
         email: formData.email || '',
         contact: cafeteriaData.contact,
         gender: formData.gender || '',
@@ -311,44 +348,64 @@ function CafeteriaForm() {
         idNumber: cafeteriaData.visitorType === 'Staff' ? (cafeteriaData.idNumber || '') : '',
         feedback: cafeteriaData.feedback || '',
         formType: 'CafeteriaFeedback',
+        selfie: selfieBase64,
+        signature: cafeteriaData.signature
       };
 
-      Object.entries(safePayload).forEach(([k, v]) => form.append(k, v ?? ''));
+      console.log('Payload to encrypt:', payload);
 
-      // selfie as File (JPEG)
-      if (cafeteriaData.selfie instanceof File) {
-        form.append('selfie', cafeteriaData.selfie, cafeteriaData.selfie.name);
+      // Encrypt the payload
+      const envelope = encryptClient(payload);
+      console.log('Encrypted envelope:', envelope);
+
+      if (!envelope || !envelope.startsWith('v:1,')) {
+        throw new Error('Encryption failed - invalid envelope format');
       }
 
-      // signature as File (Blob JPEG)
-      if (cafeteriaData.signature) {
-        const sigBlob = dataURLtoBlob(cafeteriaData.signature);
-        form.append('signature', sigBlob, 'signature.jpg');
-      }
-
+      // Send encrypted request
       const response = await fetch(`${API_BASE_URL}/form-submission/add-info`, {
         method: 'POST',
-        body: form,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ envelope })
       });
 
-      if (!response.ok) {
-        const errText = await response.text().catch(() => '');
-        console.error('Server error:', response.status, errText);
-        throw new Error(`HTTP ${response.status}`);
+      console.log('Response status:', response.status);
+
+      // Get encrypted response
+      const encryptedResult = await response.json();
+      console.log('Encrypted response:', encryptedResult);
+
+      // Decrypt response
+      let result;
+      try {
+        if (!encryptedResult.envelope) {
+          throw new Error('No envelope in response');
+        }
+        result = decryptClient(encryptedResult.envelope);
+        console.log('Decrypted result:', result);
+      } catch (decryptError) {
+        console.error('Decryption error:', decryptError);
+        console.error('Response was:', encryptedResult);
+        toast.error('Failed to decrypt server response');
+        return;
       }
 
-      const result = await response.json();
-      console.log('Submission successful:', result);
-
-      setShowSuccess(true);
-      toast.success('Feedback submitted successfully!');
-      setTimeout(() => {
-        setShowSuccess(false);
-        navigate('/domain-landing', { state: { formData } });
-      }, 2000);
+      if (response.ok) {
+        console.log('Submission successful:', result);
+        setShowSuccess(true);
+        toast.success(result.message || 'Feedback submitted successfully!');
+        setTimeout(() => {
+          setShowSuccess(false);
+          navigate('/domain-landing', { state: { formData } });
+        }, 2000);
+      } else {
+        toast.error(result.error || 'Submission failed. Please try again.');
+      }
     } catch (error) {
       console.error('Submission failed:', error);
-      toast.error('Submission failed. Please try again.');
+      toast.error(`Submission failed: ${error.message}`);
     }
   };
 
@@ -489,7 +546,7 @@ function CafeteriaForm() {
                   type="file"
                   id="selfie"
                   name="selfie"
-                  accept="image/jpeg,image/png"   // important: steer devices to JPEG/PNG
+                  accept="image/jpeg,image/png"
                   onChange={handleSelfieChange}
                   className="cafeteria-form-input"
                   style={{ display: 'none' }}
@@ -553,405 +610,3 @@ function CafeteriaForm() {
 }
 
 export default CafeteriaForm;
-
-
-
-// import React, { useState, useEffect, useRef } from 'react';
-// import { useLocation, useNavigate } from 'react-router-dom';
-// import { FaChevronLeft } from 'react-icons/fa';
-// import { MdOutlineEventNote, MdOutlinePerson, MdOutlinePhone, MdGroup, MdOutlinePhotoCamera } from 'react-icons/md';
-// import { TfiWrite } from 'react-icons/tfi';
-// import Lottie from 'react-lottie';
-// import SignaturePad from 'react-signature-canvas';
-// import toast, { Toaster } from 'react-hot-toast';
-// import successAnimation from '../assets/success.json';
-// import coffeeAnimation from '../assets/thecoffee1.json'; 
-// import '../styles/CafeteriaForm.css';
-
-// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
-// // Lottie animation options
-// const defaultOptions = {
-//     loop: true,
-//     autoplay: true,
-//     animationData: coffeeAnimation,
-//     rendererSettings: {
-//         preserveAspectRatio: 'xMidYMid slice'
-//     }
-// };
-
-// const successOptions = {
-//     loop: false, // Set to false so it plays only once
-//     autoplay: true,
-//     animationData: successAnimation,
-//     rendererSettings: {
-//         preserveAspectRatio: 'xMidYMid slice',
-//     },
-// };
-
-// function CafeteriaForm() {
-//     const location = useLocation();
-//     const navigate = useNavigate();
-//     const formData = location.state?.formData || {};
-
-//     const [cafeteriaData, setCafeteriaData] = useState({
-//         eventName: '',
-//         name: '',
-//         contact: '',
-//         visitorType: '',
-//         idNumber: '',
-//         feedback: '',
-//         selfie: null,
-//         signature: null,
-//     });
-
-//     const [errors, setErrors] = useState({});
-//     const [showIdNumber, setShowIdNumber] = useState(false);
-//     const [selfiePreview, setSelfiePreview] = useState(null);
-//     const [showSignaturePad, setShowSignaturePad] = useState(false);
-//     const sigCanvas = useRef({});
-//     const [showSuccess, setShowSuccess] = useState(false);
-
-//     useEffect(() => {
-//         if (formData.firstName || formData.lastName) {
-//             const fullName = `${formData.firstName || ''} ${formData.lastName || ''}`.trim();
-            
-//             let cleanContact = formData.contact || '';
-//             try {
-//                 const parsedContact = JSON.parse(cleanContact);
-//                 if (typeof parsedContact === 'object' && parsedContact.contact) {
-//                     cleanContact = parsedContact.contact;
-//                 }
-//             } catch (e) {
-//                 // Ignore parsing errors, contact is already a simple string
-//             }
-
-//             setCafeteriaData(prevData => ({
-//                 ...prevData,
-//                 name: fullName,
-//                 contact: cleanContact,
-//                 visitorType: formData.employeeType === 'KGISL' ? 'Staff' : 'Visitor'
-//             }));
-//         }
-//         if (formData.employeeType === 'KGISL') {
-//             setShowIdNumber(true);
-//             setCafeteriaData(prevData => ({
-//                 ...prevData,
-//                 idNumber: formData.employeeId || ''
-//             }));
-//         }
-//     }, [formData]);
-
-//     const handleChange = (e) => {
-//         const { name, value } = e.target;
-//         setCafeteriaData(prevData => ({ ...prevData, [name]: value }));
-
-//         if (name === 'visitorType') {
-//             setShowIdNumber(value === 'Staff');
-//             if (value !== 'Staff') {
-//                 setCafeteriaData(prevData => ({ ...prevData, idNumber: '' }));
-//             }
-//         }
-//     };
-
-//     const handleSelfieChange = (e) => {
-//         const file = e.target.files[0];
-//         if (file) {
-//             setCafeteriaData(prevData => ({ ...prevData, selfie: file }));
-//             const reader = new FileReader();
-//             reader.onloadend = () => {
-//                 setSelfiePreview(reader.result);
-//             };
-//             reader.readAsDataURL(file);
-//         }
-//     };
-
-//     const handleSignatureStart = () => {
-//         if (validateForm()) {
-//             setShowSignaturePad(true);
-//         }
-//     };
-
-//     const handleSignatureEnd = () => {
-//         if (!sigCanvas.current.isEmpty()) {
-//             setCafeteriaData(prevData => ({
-//                 ...prevData,
-//                 signature: sigCanvas.current.toDataURL(),
-//             }));
-//         }
-//     };
-
-//     const handleClearSignature = () => {
-//         sigCanvas.current.clear();
-//         setCafeteriaData(prevData => ({
-//             ...prevData,
-//             signature: null,
-//         }));
-//     };
-
-//     const validateForm = () => {
-//         const newErrors = {};
-//         if (!cafeteriaData.eventName) newErrors.eventName = 'Event Name is required.';
-//         if (!cafeteriaData.name) newErrors.name = 'Name is required.';
-//         if (!cafeteriaData.contact) {
-//             newErrors.contact = 'Contact number is required.';
-//         } else if (!/^\d{10}$/.test(cafeteriaData.contact)) {
-//             newErrors.contact = 'Contact number must be 10 digits.';
-//         }
-//         if (!cafeteriaData.visitorType) newErrors.visitorType = 'Visitor/Staff status is required.';
-//         if (cafeteriaData.visitorType === 'Staff' && !cafeteriaData.idNumber) {
-//             newErrors.idNumber = 'ID Number is required for staff.';
-//         }
-//         if (!cafeteriaData.selfie) newErrors.selfie = 'A selfie is required.';
-
-//         setErrors(newErrors);
-//         return Object.keys(newErrors).length === 0;
-//     };
-
-//     const handleSubmit = async (e) => {
-//         e.preventDefault();
-//         if (validateForm() && cafeteriaData.signature) {
-            
-//             const form = new FormData();
-            
-//             // Create a single, combined data object to avoid duplicate fields
-//             const combinedData = {
-//                 ...formData,
-//                 ...cafeteriaData,
-//                 formType: 'CafeteriaFeedback' // <-- Add this new field
-//             };
-            
-//             // Append data from the combined object
-//             for (const key in combinedData) {
-//                 if (key === 'selfie' && combinedData.selfie instanceof File) {
-//                     form.append('selfie', combinedData.selfie, combinedData.selfie.name);
-//                 } else if (key === 'signature' && combinedData.signature) {
-//                     form.append('signature', combinedData.signature);
-//                 } else {
-//                     form.append(key, combinedData[key]);
-//                 }
-//             }
-    
-//             try {
-//                 const response = await fetch(`${API_BASE_URL}/form-submission/add-info`, {
-//                     method: 'POST',
-//                     body: form,
-//                 });
-    
-//                 if (!response.ok) {
-//                     throw new Error(`HTTP error! status: ${response.status}`);
-//                 }
-    
-//                 const result = await response.json();
-//                 console.log('Submission successful:', result);
-//                  // Set success state to show animation and toast
-//                  setShowSuccess(true);
-//                  toast.success('Feedback submitted successfully!');
- 
-//                  // Set a timer to navigate after 1 second
-//                  setTimeout(() => {
-//                      setShowSuccess(false);
-//                      navigate('/'); // Navigate to the root route
-//                  }, 2000); // 1000ms = 1 second
-    
-//             } catch (error) {
-//                 console.error('Submission failed:', error);
-//                 toast.error('Submission failed. Please try again.');
-//             }
-    
-//         } else {
-//             console.log('Form has errors:', errors);
-//             toast.error('Please complete the form and add your signature.');
-//         }
-//     };
-
-//     return (
-//         <div className="cafeteria-form-wrapper">
-//             <Toaster />
-//             {showSuccess ? (
-//                 <div className="success-lottie-container-alt">
-//                     <Lottie options={successOptions} height={200} width={200} />
-//                 </div>
-//             ) : (
-//             <div className="cafeteria-form-blur-container">
-//                 <div className="cafeteria-form-lottie-container">
-//                     <Lottie options={defaultOptions} />
-//                 </div>
-//                 <div className="cafeteria-form-content">
-//                     <div className="cafeteria-form-header">
-//                         <button className="cafeteria-form-back-button" onClick={() => window.history.back()}>
-//                             <FaChevronLeft />
-//                         </button>
-//                         <p className="cafeteria-form-title">Cafeteria Feedback</p>
-//                     </div>
-
-//                     <form className="cafeteria-form-grid" noValidate>
-//                         <div className="cafeteria-form-group">
-//                             <label htmlFor="eventName" className="cafeteria-form-label">
-//                                 <MdOutlineEventNote className="cafeteria-label-icon" />
-//                                 Name of Event
-//                             </label>
-//                             <input
-//                                 type="text"
-//                                 id="eventName"
-//                                 name="eventName"
-//                                 value={cafeteriaData.eventName}
-//                                 onChange={handleChange}
-//                                 className="cafeteria-form-input"
-//                                 placeholder="Enter event name"
-//                             />
-//                             {errors.eventName && <p className="cafeteria-form-error">{errors.eventName}</p>}
-//                         </div>
-
-//                         <div className="cafeteria-form-group">
-//                             <label htmlFor="name" className="cafeteria-form-label">
-//                                 <MdOutlinePerson className="cafeteria-label-icon" />
-//                                 Name
-//                             </label>
-//                             <input
-//                                 type="text"
-//                                 id="name"
-//                                 name="name"
-//                                 value={cafeteriaData.name}
-//                                 onChange={handleChange}
-//                                 className="cafeteria-form-input disabled"
-//                                 disabled
-//                             />
-//                         </div>
-
-//                         <div className="cafeteria-form-group">
-//                             <label htmlFor="contact" className="cafeteria-form-label">
-//                                 <MdOutlinePhone className="cafeteria-label-icon" />
-//                                 Mobile Number
-//                             </label>
-//                             <input
-//                                 type="tel"
-//                                 id="contact"
-//                                 name="contact"
-//                                 value={cafeteriaData.contact}
-//                                 onChange={handleChange}
-//                                 className="cafeteria-form-input disabled"
-//                                 disabled
-//                             />
-//                         </div>
-
-//                         <div className="cafeteria-form-group">
-//                             <label htmlFor="visitorType" className="cafeteria-form-label">
-//                                 <MdGroup className="cafeteria-label-icon" />
-//                                 Visitor or Staff
-//                             </label>
-//                             <select
-//                                 id="visitorType"
-//                                 name="visitorType"
-//                                 value={cafeteriaData.visitorType}
-//                                 onChange={handleChange}
-//                                 className="cafeteria-form-select"
-//                             >
-//                                 <option value="">Select Type</option>
-//                                 <option value="Visitor">Visitor</option>
-//                                 <option value="Staff">Staff</option>
-//                             </select>
-//                             {errors.visitorType && <p className="cafeteria-form-error">{errors.visitorType}</p>}
-//                         </div>
-
-//                         {showIdNumber && (
-//                             <div className="cafeteria-form-group">
-//                                 <label htmlFor="idNumber" className="cafeteria-form-label">ID Number</label>
-//                                 <input
-//                                     type="text"
-//                                     id="idNumber"
-//                                     name="idNumber"
-//                                     value={cafeteriaData.idNumber}
-//                                     onChange={handleChange}
-//                                     className="cafeteria-form-input"
-//                                     placeholder="Enter ID number"
-//                                 />
-//                                 {errors.idNumber && <p className="cafeteria-form-error">{errors.idNumber}</p>}
-//                             </div>
-//                         )}
-
-//                         <div className="cafeteria-form-group selfie-group">
-//                             <label className="cafeteria-form-label">
-//                                 <MdOutlinePhotoCamera className="cafeteria-label-icon" />
-//                                 Your Selfie Image
-//                             </label>
-//                             <input
-//                                 type="file"
-//                                 id="selfie"
-//                                 name="selfie"
-//                                 accept="image/*"
-//                                 onChange={handleSelfieChange}
-//                                 className="cafeteria-form-input"
-//                                 style={{ display: 'none' }}
-//                             />
-//                             <button
-//                                 type="button"
-//                                 className="selfie-button"
-//                                 onClick={() => document.getElementById('selfie').click()}
-//                             >
-//                                 <MdOutlinePhotoCamera className="selfie-icon" />
-//                                 Upload Selfie
-//                             </button>
-//                             {selfiePreview && <img src={selfiePreview} alt="Selfie Preview" className="selfie-preview" />}
-//                             {errors.selfie && <p className="cafeteria-form-error">{errors.selfie}</p>}
-//                         </div>
-
-//                         <div className="cafeteria-form-group">
-//                             <label htmlFor="feedback" className="cafeteria-form-label">
-//                                 <TfiWrite className="cafeteria-label-icon" />
-//                                 Your Feedback, with suggetion for Improvement
-//                             </label>
-//                             <textarea
-//                                 id="feedback"
-//                                 name="feedback"
-//                                 value={cafeteriaData.feedback}
-//                                 onChange={handleChange}
-//                                 className="cafeteria-form-textarea"
-//                                 placeholder="Share your suggesstions and feedback about the cafeteria..."
-//                             />
-//                         </div>
-
-//                         {showSignaturePad ? (
-//                             <div className="cafeteria-signature-container">
-//                                 <p className="cafeteria-signature-heading">Please sign below:</p>
-//                                 <SignaturePad
-//                                     ref={sigCanvas}
-//                                     penColor='#3d2c20'
-//                                     canvasProps={{ width: 450, height: 200, className: 'cafeteria-signature-canvas' }}
-//                                     onEnd={handleSignatureEnd}
-//                                 />
-//                                 <div className="cafeteria-signature-buttons">
-//                                     <button
-//                                         type="button"
-//                                         className="clear-button"
-//                                         onClick={handleClearSignature}
-//                                     >
-//                                         Clear
-//                                     </button>
-//                                     <button
-//                                         type="button"
-//                                         className="cafeteria-submit-button"
-//                                         onClick={handleSubmit}
-//                                     >
-//                                         Submit
-//                                     </button>
-//                                 </div>
-//                             </div>
-//                         ) : (
-//                             <button
-//                                 type="button"
-//                                 className="cafeteria-form-submit-button"
-//                                 onClick={handleSignatureStart}
-//                             >
-//                                 Signature
-//                             </button>
-//                         )}
-//                     </form>
-//                 </div>
-//             </div>
-//             )}
-//         </div>
-//     );
-// }
-
-// export default CafeteriaForm;
