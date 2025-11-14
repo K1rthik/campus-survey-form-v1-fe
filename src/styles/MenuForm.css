@@ -297,3 +297,76 @@
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(226, 109, 74, 0.3);
 }
+
+
+
+/* //////////////////////////////////////////////
+ */
+
+ /* Add these CSS rules to your MenuForm.css file */
+
+/* Fix dropdown overflow issues */
+.menu-form-select-alt {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Ensure form groups contain their content properly */
+.menu-form-group-alt {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Fix form grid container */
+.menu-form-grid-alt {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+/* Fix main form content container */
+.menu-form-content {
+  width: 100%;
+  max-width: 100%;
+  padding: 0 15px;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+/* Specific fix for select dropdown container */
+.menu-form-group-alt select.menu-form-select-alt {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+}
+
+/* Alternative: If you want to add specific styling to the selection type field */
+.menu-form-group-alt:first-child .menu-form-select-alt {
+  width: 100%;
+  max-width: 280px; /* Adjust this value as needed */
+}
+
+/* Mobile responsive fix */
+@media (max-width: 768px) {
+  .menu-form-select-alt {
+    width: 100% !important;
+    max-width: 100% !important;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+  
+  .menu-form-content {
+    padding: 0 10px;
+  }
+  
+  .menu-form-grid-alt {
+    padding: 0;
+  }
+}
+
