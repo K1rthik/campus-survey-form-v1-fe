@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FaChevronLeft } from 'react-icons/fa';
-import { MdOutlineEventNote, MdOutlinePerson, MdOutlinePhone, MdGroup, MdOutlinePhotoCamera, MdOutlineDateRange} from 'react-icons/md';
+import { MdOutlineEventNote, MdOutlinePerson, MdOutlinePhone, MdGroup, MdOutlinePhotoCamera, MdOutlineDateRange, MdOutlineCategory} from 'react-icons/md';
 import { TfiWrite } from 'react-icons/tfi';
 import Lottie from 'react-lottie';
 import SignaturePad from 'react-signature-canvas';
@@ -151,8 +151,10 @@ function CafeteriaForm() {
   const location = useLocation();
   const navigate = useNavigate();
   const formData = location.state?.formData || {};
+console.log("formData==>",formData);
 
   const [cafeteriaData, setCafeteriaData] = useState({
+    selectionType: 'event', // New field for dropdown selection
     eventName: '',
     eventDate: new Date(),
     name: '',
@@ -195,10 +197,13 @@ function CafeteriaForm() {
         ...prev,
         name: fullName,
         contact: cleanContact,
-        visitorType: formData.employeeType === 'KGISL' ? 'Staff' : 'Visitor',
+        // Set visitorType based on employeeStatus: "Visitors" -> "Visitor", otherwise check employeeType
+        visitorType: formData.employeeStatus === 'Visitors' ? 'Visitor' : 
+                    (formData.employeeType === 'KGISL' ? 'Staff' : 'Visitor')
       }));
     }
 
+    // Show ID Number field for KGISL employees
     if (formData.employeeType === 'KGISL') {
       setShowIdNumber(true);
       setCafeteriaData(prev => ({ ...prev, idNumber: formData.employeeId || '' }));
@@ -237,6 +242,11 @@ function CafeteriaForm() {
       if (!isStaff) {
         setCafeteriaData(prev => ({ ...prev, idNumber: '' }));
       }
+    }
+
+    // Clear eventName when selection type changes
+    if (name === 'selectionType') {
+      setCafeteriaData(prev => ({ ...prev, eventName: '' }));
     }
   };
 
@@ -291,10 +301,127 @@ function CafeteriaForm() {
     setCafeteriaData(prev => ({ ...prev, signature: null }));
   };
 
+  // Dynamic label and placeholder based on selection type and employee status
+  const getEventFieldLabel = () => {
+    // If Visitors, always show "Purpose of visit"
+    if (formData.employeeStatus === 'Visitors') {
+      return 'Purpose of visit';
+    }
+    
+    // If Employee, use enhanced selection logic
+    if (formData.employeeStatus === 'Employee') {
+      switch (cafeteriaData.selectionType) {
+        case 'event':
+          return 'Name of Event';
+        case 'regular':
+          return 'Regular Activity';
+        case 'other':
+          return 'Others Name';
+        default:
+          return 'Name of Event';
+      }
+    }
+    
+    // Default logic for other employee statuses
+    return cafeteriaData.selectionType === 'event' ? 'Name of Event' : 'Others Name';
+  };
+
+  const getEventFieldPlaceholder = () => {
+    // If Visitors, always show purpose placeholder
+    if (formData.employeeStatus === 'Visitors') {
+      return 'Enter purpose of visit';
+    }
+    
+    // If Employee, use enhanced selection logic
+    if (formData.employeeStatus === 'Employee') {
+      switch (cafeteriaData.selectionType) {
+        case 'event':
+          return 'Enter event name';
+        case 'regular':
+          return 'Enter regular activity';
+        case 'other':
+          return 'Enter others name';
+        default:
+          return 'Enter event name';
+      }
+    }
+    
+    // Default logic for other employee statuses
+    return cafeteriaData.selectionType === 'event' ? 'Enter event name' : 'Enter others name';
+  };
+
+  const getDateFieldLabel = () => {
+    // If Visitors, show "Date of visit"
+    if (formData.employeeStatus === 'Visitors' || formData.employeeStatus === 'Employee' ) {
+      return 'Visit date';
+    }
+    // Otherwise show "Event Date"
+    return 'Event Date';
+  };
+
+  const getDateFieldPlaceholder = () => {
+    // If Visitors, show visit date placeholder
+    if (formData.employeeStatus === 'Visitors') {
+      return 'Select date of visit';
+    }
+    // Otherwise show event date placeholder
+    return 'Select event date';
+  };
+
+  // Dynamic dropdown options based on employee status
+  const getSelectionOptions = () => {
+    if (formData.employeeStatus === 'Employee') {
+      return (
+        <>
+          <option value="event">Event</option>
+          <option value="regular">Regular</option>
+          <option value="other">Other</option>
+        </>
+      );
+    }
+    
+    // Default options for other statuses
+    return (
+      <>
+        <option value="event">Event</option>
+        <option value="others">Others</option>
+      </>
+    );
+  };
+
   const validateForm = () => {
     const newErrors = {};
-    if (!cafeteriaData.eventName) newErrors.eventName = 'Event Name is required.';
-    if (!cafeteriaData.eventDate) newErrors.eventDate = 'Event Date is required.';
+    
+    if (!cafeteriaData.selectionType) newErrors.selectionType = 'Selection type is required.';
+    if (!cafeteriaData.eventName) {
+      let fieldName;
+      if (formData.employeeStatus === 'Visitors') {
+        fieldName = 'Purpose of visit';
+      } else if (formData.employeeStatus === 'Employee') {
+        switch (cafeteriaData.selectionType) {
+          case 'event':
+            fieldName = 'Event Name';
+            break;
+          case 'regular':
+            fieldName = 'Regular Activity';
+            break;
+          case 'other':
+            fieldName = 'Others Name';
+            break;
+          default:
+            fieldName = 'Event Name';
+        }
+      } else {
+        fieldName = cafeteriaData.selectionType === 'event' ? 'Event Name' : 'Others Name';
+      }
+      newErrors.eventName = `${fieldName} is required.`;
+    }
+   
+    if (!cafeteriaData.eventDate) {
+      const dateFieldName = formData.employeeStatus === 'Visitors' ? 'Date of visit' : 'Event Date';
+      newErrors.eventDate = `${dateFieldName} is required.`;
+    }
+    
     if (!cafeteriaData.name) newErrors.name = 'Name is required.';
     if (!cafeteriaData.contact) {
       newErrors.contact = 'Contact number is required.';
@@ -342,6 +469,7 @@ function CafeteriaForm() {
         employeeStatus: formData.employeeStatus || '',
         employeeType: formData.employeeType || '',
         employeeId: formData.employeeId || '',
+        selectionType: cafeteriaData.selectionType, // Include selection type
         eventName: cafeteriaData.eventName,
         eventDate: cafeteriaData.eventDate ? format(cafeteriaData.eventDate, 'dd/MM/yyyy') : '',
         visitorType: cafeteriaData.visitorType,
@@ -433,11 +561,37 @@ function CafeteriaForm() {
               <p className="cafeteria-form-title">Cafeteria Feedback</p>
             </div>
 
-            <form className="cafeteria-form-grid" noValidate ref={formRef}>
+            <form className="cafeteria-form-grid" noValidate ref={formRef} style={{ width: '100%', maxWidth: '100%', overflowX: 'hidden', boxSizing: 'border-box' }}>
+              {/* New Selection Type Dropdown */}
+              <div className="cafeteria-form-group" style={{ width: '100%', maxWidth: '100%' }}>
+                <label htmlFor="selectionType" className="cafeteria-form-label">
+                  <MdOutlineCategory className="cafeteria-label-icon" />
+                  Selection Type
+                </label>
+                <select
+                  id="selectionType"
+                  name="selectionType"
+                  value={cafeteriaData.selectionType}
+                  onChange={handleChange}
+                  className="cafeteria-form-select"
+                  style={{ 
+                    width: '100%', 
+                    maxWidth: '100%', 
+                    boxSizing: 'border-box',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
+                >
+                  {getSelectionOptions()}
+                </select>
+                {errors.selectionType && <p className="cafeteria-form-error">{errors.selectionType}</p>}
+              </div>
+
+              {/* Dynamic Event Name Field */}
               <div className="cafeteria-form-group">
                 <label htmlFor="eventName" className="cafeteria-form-label">
                   <MdOutlineEventNote className="cafeteria-label-icon" />
-                  Name of Event
+                  {getEventFieldLabel()}
                 </label>
                 <input
                   type="text"
@@ -446,7 +600,7 @@ function CafeteriaForm() {
                   value={cafeteriaData.eventName}
                   onChange={handleChange}
                   className="cafeteria-form-input"
-                  placeholder="Enter event name"
+                  placeholder={getEventFieldPlaceholder()}
                 />
                 {errors.eventName && <p className="cafeteria-form-error">{errors.eventName}</p>}
               </div>
@@ -454,7 +608,7 @@ function CafeteriaForm() {
               <div className="cafeteria-form-group">
                 <label htmlFor="eventDate" className="cafeteria-form-label">
                   <MdOutlineDateRange className="cafeteria-label-icon" />
-                  Event Date
+                  {getDateFieldLabel()}
                 </label>
                 <DatePicker
                   id="eventDate"
@@ -463,6 +617,7 @@ function CafeteriaForm() {
                   maxDate={new Date()}
                   minDate={new Date(new Date().setDate(new Date().getDate() - 6))}
                   dateFormat="dd/MM/yyyy"
+                  placeholderText={getDateFieldPlaceholder()}
                   className="cafeteria-form-input"
                 />
                 {errors.eventDate && <p className="cafeteria-form-error">{errors.eventDate}</p>}
@@ -540,7 +695,7 @@ function CafeteriaForm() {
               <div className="cafeteria-form-group selfie-group">
                 <label className="cafeteria-form-label">
                   <MdOutlinePhotoCamera className="cafeteria-label-icon" />
-                  Your Selfie Image
+                  Upload Image
                 </label>
                 <input
                   type="file"
@@ -557,7 +712,7 @@ function CafeteriaForm() {
                   onClick={() => document.getElementById('selfie').click()}
                 >
                   <MdOutlinePhotoCamera className="selfie-icon" />
-                  Upload Selfie
+                  Upload Image
                 </button>
                 {selfiePreview && <img src={selfiePreview} alt="Selfie Preview" className="selfie-preview" />}
                 {errors.selfie && <p className="cafeteria-form-error">{errors.selfie}</p>}
