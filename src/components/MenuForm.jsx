@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FaChevronLeft } from 'react-icons/fa';
-import { MdOutlineEventNote, MdOutlinePerson, MdOutlinePhone, MdGroup, MdOutlinePhotoCamera, MdOutlineDateRange } from 'react-icons/md';
+import { MdOutlineEventNote, MdOutlinePerson, MdOutlinePhone, MdGroup, MdOutlinePhotoCamera, MdOutlineDateRange, MdOutlineCategory } from 'react-icons/md';
 import { TfiWrite } from 'react-icons/tfi';
 import Lottie from 'react-lottie';
 import SignaturePad from 'react-signature-canvas';
@@ -154,6 +154,7 @@ function MenuForm() {
   const formData = location.state?.formData || {};
 
   const [menuData, setMenuData] = useState({
+    selectionType: 'event', // New field for dropdown selection
     eventName: '',
     eventDate: new Date(),
     name: '',
@@ -196,9 +197,13 @@ function MenuForm() {
         ...prevData,
         name: fullName,
         contact: cleanContact,
-        visitorType: formData.employeeType === 'KGISL' ? 'Staff' : 'Visitor'
+        // Set visitorType based on employeeStatus: "Visitors" -> "Visitor", otherwise check employeeType
+        visitorType: formData.employeeStatus === 'Visitors' ? 'Visitor' : 
+                    (formData.employeeType === 'KGISL' ? 'Staff' : 'Visitor')
       }));
     }
+    
+    // Show ID Number field for KGISL employees
     if (formData.employeeType === 'KGISL') {
       setShowIdNumber(true);
       setMenuData(prevData => ({
@@ -247,6 +252,11 @@ function MenuForm() {
       if (!isStaff) {
         setMenuData(prevData => ({ ...prevData, idNumber: '' }));
       }
+    }
+
+    // Clear eventName when selection type changes
+    if (name === 'selectionType') {
+      setMenuData(prevData => ({ ...prevData, eventName: '' }));
     }
   };
 
@@ -303,8 +313,21 @@ function MenuForm() {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!menuData.eventName) newErrors.eventName = 'Event Name is required.';
-    if (!menuData.eventDate) newErrors.eventDate = 'Event Date is required.';
+    
+    if (!menuData.selectionType) newErrors.selectionType = 'Selection type is required.';
+    if (!menuData.eventName) {
+      let fieldName;
+      if (formData.employeeStatus === 'Visitors') {
+        fieldName = 'Purpose of visit';
+      } else {
+        fieldName = menuData.selectionType === 'event' ? 'Event Name' : 'Others Name';
+      }
+      newErrors.eventName = `${fieldName} is required.`;
+    }
+    if (!menuData.eventDate) {
+      const dateFieldName = formData.employeeStatus === 'Visitors' ? 'Date of visit' : 'Event Date';
+      newErrors.eventDate = `${dateFieldName} is required.`;
+    }
     if (!menuData.name) newErrors.name = 'Name is required.';
     if (!menuData.contact) {
       newErrors.contact = 'Contact number is required.';
@@ -347,6 +370,7 @@ function MenuForm() {
         employeeStatus: formData.employeeStatus || '',
         employeeType: formData.employeeType || '',
         employeeId: formData.employeeId || '',
+        selectionType: menuData.selectionType, // Include selection type
         eventName: menuData.eventName,
         eventDate: menuData.eventDate ? format(menuData.eventDate, 'dd/MM/yyyy') : '',
         visitorType: menuData.visitorType,
@@ -418,6 +442,43 @@ function MenuForm() {
     navigate('/domain-landing', { state: { formData } });
   };
 
+  // Dynamic label and placeholder based on selection type and employee status
+  const getEventFieldLabel = () => {
+    // If Visitors, always show "Purpose of visit"
+    if (formData.employeeStatus === 'Visitors') {
+      return 'Purpose of visit';
+    }
+    // Otherwise use selection type logic
+    return menuData.selectionType === 'event' ? 'Name of Event' : 'Others Name';
+  };
+
+  const getEventFieldPlaceholder = () => {
+    // If Visitors, always show purpose placeholder
+    if (formData.employeeStatus === 'Visitors') {
+      return 'Enter purpose of visit';
+    }
+    // Otherwise use selection type logic
+    return menuData.selectionType === 'event' ? 'Enter event name' : 'Enter others name';
+  };
+
+  const getDateFieldLabel = () => {
+    // If Visitors, show "Date of visit"
+    if (formData.employeeStatus === 'Visitors') {
+      return 'Date of visit';
+    }
+    // Otherwise show "Event Date"
+    return 'Event Date';
+  };
+
+  const getDateFieldPlaceholder = () => {
+    // If Visitors, show visit date placeholder
+    if (formData.employeeStatus === 'Visitors') {
+      return 'Select date of visit';
+    }
+    // Otherwise show event date placeholder
+    return 'Select event date';
+  };
+
   return (
     <div className="menu-form-wrapper-alt">
       <Toaster position="top-center" />
@@ -438,11 +499,38 @@ function MenuForm() {
               <p className="menu-form-title-alt">Menu Feedback</p>
             </div>
 
-            <form className="menu-form-grid-alt" noValidate ref={formRef}>
+            <form className="menu-form-grid-alt" noValidate ref={formRef} style={{ width: '100%', maxWidth: '100%', overflowX: 'hidden', boxSizing: 'border-box' }}>
+              {/* New Selection Type Dropdown */}
+              <div className="menu-form-group-alt" style={{ width: '100%', maxWidth: '100%' }}>
+                <label htmlFor="selectionType" className="menu-form-label-alt">
+                  <MdOutlineCategory className="menu-label-icon" />
+                  Selection Type
+                </label>
+                <select
+                  id="selectionType"
+                  name="selectionType"
+                  value={menuData.selectionType}
+                  onChange={handleChange}
+                  className="menu-form-select-alt"
+                  style={{ 
+                    width: '100%', 
+                    maxWidth: '100%', 
+                    boxSizing: 'border-box',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
+                >
+                  <option value="event">Event</option>
+                  <option value="others">Others</option>
+                </select>
+                {errors.selectionType && <p className="menu-form-error-alt">{errors.selectionType}</p>}
+              </div>
+
+              {/* Dynamic Event Name Field */}
               <div className="menu-form-group-alt">
                 <label htmlFor="eventName" className="menu-form-label-alt">
                   <MdOutlineEventNote className="menu-label-icon" />
-                  Name of Event
+                  {getEventFieldLabel()}
                 </label>
                 <input
                   type="text"
@@ -451,7 +539,7 @@ function MenuForm() {
                   value={menuData.eventName}
                   onChange={handleChange}
                   className="menu-form-input-alt"
-                  placeholder="Enter event name"
+                  placeholder={getEventFieldPlaceholder()}
                 />
                 {errors.eventName && <p className="menu-form-error-alt">{errors.eventName}</p>}
               </div>
@@ -459,7 +547,7 @@ function MenuForm() {
               <div className="menu-form-group-alt">
                 <label htmlFor="eventDate" className="menu-form-label-alt">
                 <MdOutlineDateRange className="menu-label-icon" />
-                  Event Date
+                  {getDateFieldLabel()}
                 </label>
                 <DatePicker
                   id="eventDate"
@@ -468,7 +556,7 @@ function MenuForm() {
                   maxDate={new Date()}
                   minDate={new Date(new Date().setDate(new Date().getDate() - 6))}
                   dateFormat="dd/MM/yyyy"
-                  placeholderText="Select event date"
+                  placeholderText={getDateFieldPlaceholder()}
                   className="menu-form-input-alt"
                 />
                 {errors.eventDate && <p className="menu-form-error-alt">{errors.eventDate}</p>}
@@ -546,7 +634,7 @@ function MenuForm() {
               <div className="menu-form-group-alt selfie-group">
                 <label className="menu-form-label-alt">
                   <MdOutlinePhotoCamera className="menu-label-icon" />
-                  Your Selfie Image
+                  Upload Image
                 </label>
                 <input
                   type="file"
@@ -563,7 +651,7 @@ function MenuForm() {
                   onClick={() => document.getElementById('selfie').click()}
                 >
                   <MdOutlinePhotoCamera className="selfie-icon-alt" />
-                  Upload Selfie
+                  Upload Image
                 </button>
                 {selfiePreview && <img src={selfiePreview} alt="Selfie Preview" className="selfie-preview-alt" />}
                 {errors.selfie && <p className="menu-form-error-alt">{errors.selfie}</p>}
