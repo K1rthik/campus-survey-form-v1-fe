@@ -12,7 +12,7 @@
     --primary-color: #7b68ee; /* A shade of purple from the image */
     --secondary-color: #e0e0e0; /* Light gray for backgrounds */
     --text-dark: #333;
-    --text-light: #555;
+    --text-light: #333333;
     --error-color: #dc3545;
     --white: #ffffff;
     --shadow-light: 0 4px 15px rgba(0, 0, 0, 0.08);
@@ -26,7 +26,9 @@ body {
     -moz-osx-font-smoothing: grayscale;
     background-color: var(--secondary-color); /* Overall page background */
 }
-
+.employeeForm-mainhead{
+    width: 100%;
+}
 /* Main wrapper for the entire form screen */
 .emp-form-main-wrapper {
     display: flex;
@@ -37,6 +39,7 @@ body {
     position: relative;
     overflow-x: hidden; /* Prevents horizontal scrolling */
     z-index: 10;
+    width: 100%;
 }
 
 /* Background Image Container */
@@ -62,10 +65,13 @@ body {
 .emp-form-logo-container {
     position: absolute;
     top: 15px;
-    right: 20px;
+    right: 10%;
     z-index: 10;
   }
-  
+  .emp-form-input::placeholder {
+  color: #333333 !important;
+  opacity: 1; /* ensures the color is fully visible */
+}
   .emp-form-logo {
     height: 20px;  /* adjust as needed */
     width: 80px;
@@ -173,10 +179,10 @@ body {
     display: flex;
     align-items: center;
     font-family: 'Poppins', sans-serif;
-    font-size: 0.85rem;
-    color: var(--text-light);
+    font-size: 0.9rem;
+    color: #333333!important;
     margin-bottom: 0.4rem;
-    font-weight: 500;
+    font-weight: bold;
 }
 
 .emp-form-icon {
@@ -235,11 +241,12 @@ body {
   display: flex;
   align-items: center;
   background-color: #fcfcfc;
-  border: 1px solid var(--secondary-color);
+  border: 1px solid #333333;
   border-radius: 8px;
   padding: 0.8rem 1rem;
   cursor: pointer;
   font-size: 0.9rem;
+  font-weight: bold;
   color: var(--text-dark);
   transition: all 0.2s ease;
   width: 100%; /* Ensures each radio button label takes up full width */
@@ -318,7 +325,7 @@ body {
         font-size: 0.9rem;
     }
     .emp-form-label {
-        font-size: 0.8rem;
+        font-size: 0.9rem;
     }
 }
 
