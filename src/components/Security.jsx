@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FaChevronLeft } from 'react-icons/fa';
-import { MdOutlinePerson, MdOutlinePhone, MdOutlineBadge, MdOutlineVerifiedUser, MdOutlineReportProblem, MdOutlinePhotoCamera, MdOutlineDateRange, MdOutlineEventNote } from 'react-icons/md';
+import { MdOutlinePerson, MdOutlinePhone, MdOutlineBadge, MdOutlineVerifiedUser, MdOutlineReportProblem, MdOutlinePhotoCamera, MdOutlineDateRange, MdOutlineEventNote, MdOutlineCategory } from 'react-icons/md';
 import Lottie from 'react-lottie';
 import SignaturePad from 'react-signature-canvas';
 import toast, { Toaster } from 'react-hot-toast';
@@ -90,6 +90,7 @@ function Security() {
     const formData = location.state?.formData || {};
 
     const [securityData, setSecurityData] = useState({
+        selectionType: 'event', // New field for dropdown selection
         eventName: '',
         eventDate: new Date(),
         name: '',
@@ -125,7 +126,7 @@ function Security() {
     }, [formData]);
 
     useEffect(() => {
-        const formElements = formRef.current.querySelectorAll('input, textarea');
+        const formElements = formRef.current.querySelectorAll('input, textarea, select');
         const handleFocus = (event) => {
             event.target.scrollIntoView({
                 behavior: 'smooth',
@@ -160,6 +161,11 @@ function Security() {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setSecurityData(prevData => ({ ...prevData, [name]: value }));
+
+        // Clear eventName when selection type changes
+        if (name === 'selectionType') {
+            setSecurityData(prevData => ({ ...prevData, eventName: '' }));
+        }
     };
 
     const handleImageUpload = (e) => {
@@ -227,10 +233,92 @@ function Security() {
         }));
     };
 
+    // Dynamic label and placeholder based on selection type
+    const getEventFieldLabel = () => {
+        switch (securityData.selectionType) {
+            case 'event':
+                return 'Name of Event';
+            case 'students':
+                return 'Student Activity';
+            case 'employees':
+                return 'Employee Matter';
+            case 'campus':
+                return 'Campus Issue';
+            case 'others':
+                return 'Others Name';
+            default:
+                return 'Name of Event';
+        }
+    };
+
+    const getEventFieldPlaceholder = () => {
+        switch (securityData.selectionType) {
+            case 'event':
+                return 'Enter event name';
+            case 'students':
+                return 'Enter student activity';
+            case 'employees':
+                return 'Enter employee matter';
+            case 'campus':
+                return 'Enter campus issue';
+            case 'others':
+                return 'Enter others name';
+            default:
+                return 'Enter event name';
+        }
+    };
+
+    const getDateFieldLabel = () => {
+        return 'Date of incident';
+    };
+
+    const getDateFieldPlaceholder = () => {
+        return 'Select event date';
+    };
+
+    // Dynamic dropdown options - simplified
+    const getSelectionOptions = () => {
+        return (
+            <>
+                <option value="event">Event</option>
+                <option value="students">Students</option>
+                <option value="employees">Employees</option>
+                <option value="campus">Campus</option>
+                <option value="others">Others</option>
+            </>
+        );
+    };
+
     const validateForm = () => {
         const newErrors = {};
-        if (!securityData.eventName) newErrors.eventName = 'Event Name is required.';
-        if (!securityData.eventDate) newErrors.eventDate = 'Event Date is required.';
+        
+        if (!securityData.selectionType) newErrors.selectionType = 'Selection type is required.';
+        if (!securityData.eventName) {
+            let fieldName;
+            switch (securityData.selectionType) {
+                case 'event':
+                    fieldName = 'Event Name';
+                    break;
+                case 'students':
+                    fieldName = 'Student Activity';
+                    break;
+                case 'employees':
+                    fieldName = 'Employee Matter';
+                    break;
+                case 'campus':
+                    fieldName = 'Campus Issue';
+                    break;
+                case 'others':
+                    fieldName = 'Others Name';
+                    break;
+                default:
+                    fieldName = 'Event Name';
+            }
+            newErrors.eventName = `${fieldName} is required.`;
+        }
+        if (!securityData.eventDate) {
+            newErrors.eventDate = 'Event Date is required.';
+        }
         if (!securityData.name) newErrors.name = 'Name is required.';
         if (!securityData.mobileNumber) {
             newErrors.mobileNumber = 'Mobile number is required.';
@@ -279,6 +367,7 @@ function Security() {
                 employeeType: formData.employeeType || '',
                 employeeStatus: formData.employeeStatus || '',
                 // Security form data
+                selectionType: securityData.selectionType, // Include selection type
                 eventName: securityData.eventName,
                 eventDate: formattedDate,
                 name: securityData.name,
@@ -319,6 +408,7 @@ function Security() {
                 toast.success(result.message || 'Security report submitted successfully!');
                 setShowSuccess(true);
                 setSecurityData({
+                    selectionType: 'event', // Reset with default
                     eventName: '',
                     eventDate: new Date(),
                     name: '',
@@ -375,11 +465,38 @@ function Security() {
                             <p className="security-form-title-alt">Security Incident Report</p>
                         </div>
 
-                        <form className="security-form-grid-alt" noValidate ref={formRef}>
+                        <form className="security-form-grid-alt" noValidate ref={formRef} style={{ width: '100%', maxWidth: '100%', overflowX: 'hidden', boxSizing: 'border-box' }}>
+                            {/* New Selection Type Dropdown */}
+                            <div className="security-form-group-alt" style={{ width: '100%', maxWidth: '100%' }}>
+                                <label htmlFor="selectionType" className="security-form-label-alt">
+                                    <MdOutlineCategory className="security-label-icon" />
+                                    Incident category
+                                </label>
+                                <select
+                                    id="selectionType"
+                                    name="selectionType"
+                                    value={securityData.selectionType}
+                                    onChange={handleChange}
+                                    className="security-form-select-alt"
+                                    style={{ 
+                                        width: '100%', 
+                                        maxWidth: '100%', 
+                                        boxSizing: 'border-box',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis'
+                                    }}
+                                    disabled={isSubmitting}
+                                >
+                                    {getSelectionOptions()}
+                                </select>
+                                {errors.selectionType && <p className="security-form-error-alt">{errors.selectionType}</p>}
+                            </div>
+
+                            {/* Dynamic Event Name Field */}
                             <div className="security-form-group-alt">
                                 <label htmlFor="eventName" className="security-form-label-alt">
                                     <MdOutlineEventNote className="security-label-icon" />
-                                    Name of Event
+                                    {getEventFieldLabel()}
                                 </label>
                                 <input
                                     type="text"
@@ -388,7 +505,7 @@ function Security() {
                                     value={securityData.eventName}
                                     onChange={handleChange}
                                     className="security-form-input-alt"
-                                    placeholder="Enter event name"
+                                    placeholder={getEventFieldPlaceholder()}
                                     disabled={isSubmitting}
                                 />
                                 {errors.eventName && <p className="security-form-error-alt">{errors.eventName}</p>}
@@ -397,7 +514,7 @@ function Security() {
                             <div className="security-form-group-alt">
                                 <label htmlFor="eventDate" className="security-form-label-alt">
                                     <MdOutlineDateRange className="security-label-icon" />
-                                    Event Date
+                                    {getDateFieldLabel()}
                                 </label>
                                 <DatePicker
                                     id="eventDate"
@@ -406,7 +523,7 @@ function Security() {
                                     maxDate={new Date()}
                                     minDate={new Date(new Date().setDate(new Date().getDate() - 6))}
                                     dateFormat="dd/MM/yyyy"
-                                    placeholderText="Select event date"
+                                    placeholderText={getDateFieldPlaceholder()}
                                     className="security-form-input-alt"
                                     disabled={isSubmitting}
                                 />
