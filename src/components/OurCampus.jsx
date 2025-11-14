@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FaChevronLeft } from 'react-icons/fa';
-import { MdOutlineEventNote, MdOutlinePerson, MdOutlinePhone, MdGroup, MdOutlinePhotoCamera, MdOutlineBadge, MdOutlineDateRange } from 'react-icons/md';
+import { MdOutlineEventNote, MdOutlinePerson, MdOutlinePhone, MdGroup, MdOutlinePhotoCamera, MdOutlineBadge, MdOutlineDateRange, MdOutlineCategory } from 'react-icons/md';
 import { TfiWrite } from 'react-icons/tfi';
 import Lottie from 'react-lottie';
 import SignaturePad from 'react-signature-canvas';
@@ -91,6 +92,7 @@ function OurCampus() {
     const formData = location.state?.formData || {};
 
     const [campusData, setCampusData] = useState({
+        selectionType: 'event', // New field for dropdown selection
         eventName: '',
         eventDate: new Date(),
         name: '',
@@ -120,7 +122,9 @@ function OurCampus() {
                 ...prevData,
                 name: fullName,
                 mobileNumber: formData.contact || '',
-                userType: formData.employeeType === 'KGISL' ? 'Staff' : 'Visitor',
+                // Set userType based on employeeStatus: "Visitors" -> "Visitor", otherwise check employeeType
+                userType: formData.employeeStatus === 'Visitors' ? 'Visitor' : 
+                         (formData.employeeType === 'KGISL' ? 'Staff' : 'Visitor'),
                 staffId: formData.employeeType === 'KGISL' ? (formData.employeeId || '') : ''
             }));
         }
@@ -169,6 +173,11 @@ function OurCampus() {
             [name]: value,
             ...(name === 'userType' && value === 'Visitor' && { staffId: '' })
         }));
+
+        // Clear eventName when selection type changes
+        if (name === 'selectionType') {
+            setCampusData(prevData => ({ ...prevData, eventName: '' }));
+        }
     };
 
     const handleSelfieChange = (e) => {
@@ -215,11 +224,134 @@ function OurCampus() {
         }));
     };
 
+    // Dynamic label and placeholder based on selection type and employee status
+    const getEventFieldLabel = () => {
+        // If Visitors, always show "Purpose of visit"
+        if (formData.employeeStatus === 'Visitors') {
+            return 'Purpose of visit';
+        }
+        
+        // If Employee, use enhanced selection logic
+        if (formData.employeeStatus === 'Employee') {
+            switch (campusData.selectionType) {
+                case 'feedback':
+                    return 'Feedback Topic';
+                case 'new idea':
+                    return 'New Idea Title';
+                case 'escalation':
+                    return 'Escalation Subject';
+                case 'event':
+                    return 'Name of Event';
+                default:
+                    return 'Name of Event';
+            }
+        }
+        
+        // Default logic for other employee statuses
+        return campusData.selectionType === 'event' ? 'Name of Event' : 'Others Name';
+    };
+
+    const getEventFieldPlaceholder = () => {
+        // If Visitors, always show purpose placeholder
+        if (formData.employeeStatus === 'Visitors') {
+            return 'Enter purpose of visit';
+        }
+        
+        // If Employee, use enhanced selection logic
+        if (formData.employeeStatus === 'Employee') {
+            switch (campusData.selectionType) {
+                case 'feedback':
+                    return 'Enter feedback topic';
+                case 'new idea':
+                    return 'Enter new idea title';
+                case 'escalation':
+                    return 'Enter escalation subject';
+                case 'event':
+                    return 'Enter event name';
+                default:
+                    return 'Enter event name';
+            }
+        }
+        
+        // Default logic for other employee statuses
+        return campusData.selectionType === 'event' ? 'Enter event name' : 'Enter others name';
+    };
+
+    const getDateFieldLabel = () => {
+        // If Visitors, show "Date of visit"
+        if (formData.employeeStatus === 'Visitors' ||formData.employeeStatus === 'Employee') {
+            return 'Visit date';
+        }
+        // Otherwise show "Event Date"
+        return 'Event Date';
+    };
+
+    const getDateFieldPlaceholder = () => {
+        // If Visitors, show visit date placeholder
+        if (formData.employeeStatus === 'Visitors') {
+            return 'Select date of visit';
+        }
+        // Otherwise show event date placeholder
+        return 'Select event date';
+    };
+
+    // Dynamic dropdown options based on employee status
+    const getSelectionOptions = () => {
+        if (formData.employeeStatus === 'Employee') {
+            return (
+                <>
+                    <option value="feedback">Feedback</option>
+                    <option value="new idea">New Idea</option>
+                    <option value="escalation">Escalation</option>
+                    <option value="event">Event</option>
+                </>
+            );
+        }
+        
+        // Default options for other statuses
+        return (
+            <>
+                <option value="event">Event</option>
+                <option value="others">Others</option>
+            </>
+        );
+    };
+
     const validateForm = () => {
         const newErrors = {};
-        if (!campusData.eventName) newErrors.eventName = 'Event Name is required.';
+        
+        if (!campusData.selectionType) newErrors.selectionType = 'Selection type is required.';
+        if (!campusData.eventName) {
+            let fieldName;
+            if (formData.employeeStatus === 'Visitors') {
+                fieldName = 'Purpose of visit';
+            } else if (formData.employeeStatus === 'Employee') {
+                switch (campusData.selectionType) {
+                    case 'feedback':
+                        fieldName = 'Feedback Topic';
+                        break;
+                    case 'new idea':
+                        fieldName = 'New Idea Title';
+                        break;
+                    case 'escalation':
+                        fieldName = 'Escalation Subject';
+                        break;
+                    case 'event':
+                        fieldName = 'Event Name';
+                        break;
+                    default:
+                        fieldName = 'Event Name';
+                }
+            } else {
+                fieldName = campusData.selectionType === 'event' ? 'Event Name' : 'Others Name';
+            }
+            newErrors.eventName = `${fieldName} is required.`;
+        }
         if (!campusData.name) newErrors.name = 'Name is required.';
-        if (!campusData.eventDate) newErrors.eventDate = 'Event Date is required.';
+        if (!campusData.eventDate) {
+            const dateFieldName = formData.employeeStatus === 'Visitors' ? 'Date of visit' : 'Event Date';
+            newErrors.eventDate = `${dateFieldName} is required.`;
+        }
         if (!campusData.mobileNumber) {
             newErrors.mobileNumber = 'Mobile number is required.';
         } else if (!/^\d{10}$/.test(campusData.mobileNumber)) {
@@ -268,6 +400,7 @@ function OurCampus() {
                 employeeType: formData.employeeType || '',
                 employeeStatus: formData.employeeStatus || '',
                 // Campus form data
+                selectionType: campusData.selectionType, // Include selection type
                 eventName: campusData.eventName,
                 visitDate: formattedDate,
                 name: campusData.name,
@@ -351,12 +484,38 @@ function OurCampus() {
                             <p className="campus-form-title-alt">Campus Feedback</p>
                         </div>
 
-                        <form className="campus-form-grid-alt" noValidate ref={formRef}>
-                            {/* Event Name */}
+                        <form className="campus-form-grid-alt" noValidate ref={formRef} style={{ width: '100%', maxWidth: '100%', overflowX: 'hidden', boxSizing: 'border-box' }}>
+                            {/* New Selection Type Dropdown */}
+                            <div className="campus-form-group-alt" style={{ width: '100%', maxWidth: '100%' }}>
+                                <label htmlFor="selectionType" className="campus-form-label-alt">
+                                    <MdOutlineCategory className="campus-label-icon" />
+                                    Selection Type
+                                </label>
+                                <select
+                                    id="selectionType"
+                                    name="selectionType"
+                                    value={campusData.selectionType}
+                                    onChange={handleChange}
+                                    className="campus-form-select-alt"
+                                    style={{ 
+                                        width: '100%', 
+                                        maxWidth: '100%', 
+                                        boxSizing: 'border-box',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis'
+                                    }}
+                                    disabled={isSubmitting}
+                                >
+                                    {getSelectionOptions()}
+                                </select>
+                                {errors.selectionType && <p className="campus-form-error-alt">{errors.selectionType}</p>}
+                            </div>
+
+                            {/* Dynamic Event Name Field */}
                             <div className="campus-form-group-alt">
                                 <label htmlFor="eventName" className="campus-form-label-alt">
                                     <MdOutlineEventNote className="campus-label-icon" />
-                                    Name of Event
+                                    {getEventFieldLabel()}
                                 </label>
                                 <input
                                     type="text"
@@ -365,7 +524,7 @@ function OurCampus() {
                                     value={campusData.eventName}
                                     onChange={handleChange}
                                     className="campus-form-input-alt"
-                                    placeholder="Enter event name"
+                                    placeholder={getEventFieldPlaceholder()}
                                     disabled={isSubmitting}
                                 />
                                 {errors.eventName && <p className="campus-form-error-alt">{errors.eventName}</p>}
@@ -374,7 +533,7 @@ function OurCampus() {
                             <div className="campus-form-group-alt">
                                 <label htmlFor="eventDate" className="campus-form-label-alt">
                                     <MdOutlineDateRange className="campus-label-icon" />
-                                    Event Date
+                                    {getDateFieldLabel()}
                                 </label>
                                 <DatePicker
                                     id="eventDate"
@@ -383,7 +542,7 @@ function OurCampus() {
                                     maxDate={new Date()}
                                     minDate={new Date(new Date().setDate(new Date().getDate() - 6))}
                                     dateFormat="dd/MM/yyyy"
-                                    placeholderText="Select event date"
+                                    placeholderText={getDateFieldPlaceholder()}
                                     className="campus-form-input-alt"
                                     disabled={isSubmitting}
                                 />
@@ -470,7 +629,7 @@ function OurCampus() {
                             <div className="campus-form-group-alt selfie-group">
                                 <label className="campus-form-label-alt">
                                     <MdOutlinePhotoCamera className="campus-label-icon" />
-                                    Your Selfie Image
+                                    Upload Image
                                 </label>
                                 <input
                                     type="file"
@@ -489,7 +648,7 @@ function OurCampus() {
                                     disabled={isSubmitting}
                                 >
                                     <MdOutlinePhotoCamera className="selfie-icon-alt" />
-                                    Upload Selfie
+                                    Upload Image
                                 </button>
                                 {selfiePreview && <img src={selfiePreview} alt="Selfie Preview" className="selfie-preview-alt" />}
                                 {errors.selfieImage && <p className="campus-form-error-alt">{errors.selfieImage}</p>}
