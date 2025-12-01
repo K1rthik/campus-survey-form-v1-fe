@@ -4,7 +4,7 @@ import experienceAnimation from '../assets/experience.json';
 import kgisl_logo from '../assets/kgisl_logo_bg.png';
 import EmployeeForm from './EmployeeForm';
 import '../styles/SurveyLanding.css';
-import siKGlogo from '../assets/siKGnatureBlack.png';
+import siKGlogo from '../assets/siKGnatureV1.png';
 
 const SurveyLanding = () => {
   const [animate, setAnimate] = useState(false);
