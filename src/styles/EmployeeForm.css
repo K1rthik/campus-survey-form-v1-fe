@@ -363,3 +363,44 @@ body {
     width: 30px;
     transition: background-color 0.2s ease;
 }
+
+
+
+
+/* User Type Dropdown Styling */
+.emp-form-dropdown {
+    width: 100%;
+    padding: 0.9rem 1rem;
+    padding-right: 2.5rem; /* Space for custom arrow */
+    border: 1px solid var(--secondary-color);
+    border-radius: 12px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.95rem;
+    color: var(--text-dark);
+    background-color: #fcfcfc;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%237b68ee%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13.6-6.4H18.9c-5%200-9.3%203.3-11.4%208.7-2.1%205.4-0.3%2011.6%204.4%2015.4l127.3%20127.3c4.7%204.7%2012.3%204.7%2017%200l127.3-127.3c3.8-3.9%205.6-9.1%204.4-14.5z%22%2F%3E%3C%2Fsvg%3E');
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 0.8rem;
+    appearance: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box;
+    cursor: pointer;
+}
+
+.emp-form-dropdown:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(123, 104, 238, 0.1);
+    outline: none;
+    background-color: var(--white);
+}
+
+.emp-form-dropdown option {
+    padding: 0.5rem;
+    color: var(--text-dark);
+    background-color: var(--white);
+}
+
+.emp-form-dropdown option:disabled {
+    color: #a0a0a0;
+}
