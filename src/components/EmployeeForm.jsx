@@ -223,63 +223,24 @@ function EmployeeForm() {
         <div className="emp-form-scroll-container">
           <form onSubmit={handleSubmit} className="emp-form-grid" noValidate ref={formRef}>
             {/* Employee Status moved to the top */}
-            <div className="emp-form-group">
+           <div className="emp-form-group">
               <label className="emp-form-label">
                 <FaIdBadge className="emp-form-icon" />
                 User Type
               </label>
-              <div className="emp-form-radio-group">
-                <label className="emp-form-radio-label">
-                  <input
-                    type="radio"
-                    name="employeeStatus"
-                    value="Visitors"
-                    checked={formData.employeeStatus === 'Visitors'}
-                    onChange={handleChange}
-                  />
-                  Visitor
-                </label>
-                <label className="emp-form-radio-label">
-                  <input
-                    type="radio"
-                    name="employeeStatus"
-                    value="Employee"
-                    checked={formData.employeeStatus === 'Employee'}
-                    onChange={handleChange}
-                  />
-                  Employee
-                </label>
-                <label className="emp-form-radio-label">
-                  <input
-                    type="radio"
-                    name="employeeStatus"
-                    value="Student"
-                    checked={formData.employeeStatus === 'Student'}
-                    onChange={handleChange}
-                  />
-                  Student
-                </label>
-                <label className="emp-form-radio-label">
-                  <input
-                    type="radio"
-                    name="employeeStatus"
-                    value="Entrepreneur"
-                    checked={formData.employeeStatus === 'Entrepreneur'}
-                    onChange={handleChange}
-                  />
-                  Entrepreneur
-                </label>
-                <label className="emp-form-radio-label">
-                  <input
-                    type="radio"
-                    name="employeeStatus"
-                    value="Others"
-                    checked={formData.employeeStatus === 'Others'}
-                    onChange={handleChange}
-                  />
-                  Others
-                </label>
-              </div>
+              <select
+                name="employeeStatus"
+                value={formData.employeeStatus}
+                onChange={handleChange}
+                className="emp-form-dropdown"
+              >
+                <option value="" disabled>Select User Type</option>
+                <option value="Visitors">Visitor</option>
+                <option value="Employee">Employee</option>
+                <option value="Student">Student</option>
+                <option value="Entrepreneur">Entrepreneur</option>
+                <option value="Others">Others</option>
+              </select>
               {errors.employeeStatus && <p className="emp-form-error">{errors.employeeStatus}</p>}
             </div>
 
