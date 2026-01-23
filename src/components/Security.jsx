@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { FaChevronLeft } from 'react-icons/fa';
 import { MdOutlinePerson, MdOutlinePhone, MdOutlineBadge, MdOutlineVerifiedUser, MdOutlineReportProblem, MdOutlinePhotoCamera, MdOutlineDateRange, MdOutlineEventNote, MdOutlineCategory } from 'react-icons/md';
 import Lottie from 'react-lottie';
-import SignaturePad from 'react-signature-canvas';
 import toast, { Toaster } from 'react-hot-toast';
 import DatePicker from 'react-datepicker';
 import CryptoJS from 'crypto-js';
@@ -90,7 +89,7 @@ function Security() {
     const formData = location.state?.formData || {};
 
     const [securityData, setSecurityData] = useState({
-        selectionType: 'event', // New field for dropdown selection
+        selectionType: 'event', // Incident category selection
         eventName: '',
         eventDate: new Date(),
         name: '',
@@ -99,19 +98,15 @@ function Security() {
         verification: '',
         incidentReport: '',
         images: [],
-        signature: null,
     });
 
     const [errors, setErrors] = useState({});
     const [imagePreviews, setImagePreviews] = useState([]);
-    const [showSignaturePad, setShowSignaturePad] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
 
-    const sigCanvas = useRef({});
     const formRef = useRef(null);
     const imageRef = useRef(null);
-    const signatureRef = useRef(null);
 
     useEffect(() => {
         if (formData.firstName || formData.lastName) {
@@ -205,34 +200,6 @@ function Security() {
         setImagePreviews(prev => prev.filter((_, i) => i !== index));
     };
 
-    const handleSignatureStart = () => {
-        if (validateForm()) {
-            setShowSignaturePad(true);
-            setTimeout(() => {
-                if (signatureRef.current) {
-                    signatureRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-            }, 100);
-        }
-    };
-
-    const handleSignatureEnd = () => {
-        if (!sigCanvas.current.isEmpty()) {
-            setSecurityData(prevData => ({
-                ...prevData,
-                signature: sigCanvas.current.toDataURL(),
-            }));
-        }
-    };
-
-    const handleClearSignature = () => {
-        sigCanvas.current.clear();
-        setSecurityData(prevData => ({
-            ...prevData,
-            signature: null,
-        }));
-    };
-
     // Dynamic label and placeholder based on selection type
     const getEventFieldLabel = () => {
         switch (securityData.selectionType) {
@@ -284,7 +251,7 @@ function Security() {
                 <option value="students">Students</option>
                 <option value="employees">Employees</option>
                 <option value="campus">Campus</option>
-                <option value="others">Others</option>
+                <option value="others">Others / Suggestions</option>
             </>
         );
     };
@@ -336,8 +303,8 @@ function Security() {
     const handleSubmit = async (e) => {
         e.preventDefault();
  
-        if (!validateForm() || !securityData.signature) {
-            toast.error('Please complete the form and add your signature.');
+        if (!validateForm()) {
+            toast.error('Please complete all required fields.');
             return;
         }
  
@@ -355,7 +322,7 @@ function Security() {
             const year = securityData.eventDate.getFullYear();
             const formattedDate = `${day}/${month}/${year}`;
 
-            // Create payload object
+            // Create payload object (without signature)
             const payload = {
                 // Domain landing form data
                 firstName: formData.firstName || '',
@@ -367,7 +334,7 @@ function Security() {
                 employeeType: formData.employeeType || '',
                 employeeStatus: formData.employeeStatus || '',
                 // Security form data
-                selectionType: securityData.selectionType, // Include selection type
+                selectionType: securityData.selectionType,
                 eventName: securityData.eventName,
                 eventDate: formattedDate,
                 name: securityData.name,
@@ -375,7 +342,6 @@ function Security() {
                 staffId: securityData.staffId,
                 verification: securityData.verification,
                 incidentReport: securityData.incidentReport,
-                signature: securityData.signature,
                 images: imagesBase64
             };
 
@@ -417,10 +383,8 @@ function Security() {
                     verification: '',
                     incidentReport: '',
                     images: [],
-                    signature: null,
                 });
                 setImagePreviews([]);
-                setShowSignaturePad(false);
  
                 setTimeout(() => {
                     setShowSuccess(false);
@@ -465,8 +429,8 @@ function Security() {
                             <p className="security-form-title-alt">Security Incident Report</p>
                         </div>
 
-                        <form className="security-form-grid-alt" noValidate ref={formRef} style={{ width: '100%', maxWidth: '100%', overflowX: 'hidden', boxSizing: 'border-box' }}>
-                            {/* New Selection Type Dropdown */}
+                        <form className="security-form-grid-alt" onSubmit={handleSubmit} noValidate ref={formRef} style={{ width: '100%', maxWidth: '100%', overflowX: 'hidden', boxSizing: 'border-box' }}>
+                            {/* Incident Category Dropdown */}
                             <div className="security-form-group-alt" style={{ width: '100%', maxWidth: '100%' }}>
                                 <label htmlFor="selectionType" className="security-form-label-alt">
                                     <MdOutlineCategory className="security-label-icon" />
@@ -659,44 +623,14 @@ function Security() {
                                 {errors.images && <p className="security-form-error-alt">{errors.images}</p>}
                             </div>
 
-                            {showSignaturePad ? (
-                                <div className="security-signature-container" ref={signatureRef}>
-                                    <p className="security-signature-heading">Please sign below:</p>
-                                    <SignaturePad
-                                        ref={sigCanvas}
-                                        penColor='#3d2c20'
-                                        canvasProps={{ width: 450, height: 200, className: 'security-signature-canvas' }}
-                                        onEnd={handleSignatureEnd}
-                                    />
-                                    <div className="security-signature-buttons">
-                                        <button
-                                            type="button"
-                                            className="clear-button-alt"
-                                            onClick={handleClearSignature}
-                                            disabled={isSubmitting}
-                                        >
-                                            Clear
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className="security-submit-button-alt"
-                                            onClick={handleSubmit}
-                                            disabled={isSubmitting}
-                                        >
-                                            {isSubmitting ? 'Submitting...' : 'Submit Report'}
-                                        </button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <button
-                                    type="button"
-                                    className="security-form-submit-button-alt"
-                                    onClick={handleSignatureStart}
-                                    disabled={isSubmitting}
-                                >
-                                    Signature
-                                </button>
-                            )}
+                            {/* Direct Submit Button */}
+                            <button
+                                type="submit"
+                                className="security-form-submit-button-alt"
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? 'Posting...' : 'Post Feedback'}
+                            </button>
                         </form>
                     </div>
                 </div>
