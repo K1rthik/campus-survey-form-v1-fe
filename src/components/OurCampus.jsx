@@ -1,11 +1,9 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FaChevronLeft } from 'react-icons/fa';
 import { MdOutlineEventNote, MdOutlinePerson, MdOutlinePhone, MdGroup, MdOutlinePhotoCamera, MdOutlineBadge, MdOutlineDateRange, MdOutlineCategory } from 'react-icons/md';
 import { TfiWrite } from 'react-icons/tfi';
 import Lottie from 'react-lottie';
-import SignaturePad from 'react-signature-canvas';
 import toast, { Toaster } from 'react-hot-toast';
 import DatePicker from 'react-datepicker';
 import CryptoJS from 'crypto-js';
@@ -92,7 +90,7 @@ function OurCampus() {
     const formData = location.state?.formData || {};
 
     const [campusData, setCampusData] = useState({
-        selectionType: 'event', // New field for dropdown selection
+        selectionType: '', // Campus feedback category selection
         eventName: '',
         eventDate: new Date(),
         name: '',
@@ -101,18 +99,14 @@ function OurCampus() {
         staffId: '',
         selfieImage: null,
         feedback: '',
-        signature: null,
     });
 
     const [errors, setErrors] = useState({});
     const [selfiePreview, setSelfiePreview] = useState(null);
-    const [showSignaturePad, setShowSignaturePad] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
 
-    const sigCanvas = useRef({});
     const formRef = useRef(null);
-    const signatureRef = useRef(null);
     const feedbackRef = useRef(null);
 
     useEffect(() => {
@@ -196,34 +190,6 @@ function OurCampus() {
         }
     };
 
-    const handleSignatureStart = () => {
-        if (validateForm()) {
-            setShowSignaturePad(true);
-            setTimeout(() => {
-                if (signatureRef.current) {
-                    signatureRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-            }, 100);
-        }
-    };
-
-    const handleSignatureEnd = () => {
-        if (!sigCanvas.current.isEmpty()) {
-            setCampusData(prevData => ({
-                ...prevData,
-                signature: sigCanvas.current.toDataURL(),
-            }));
-        }
-    };
-
-    const handleClearSignature = () => {
-        sigCanvas.current.clear();
-        setCampusData(prevData => ({
-            ...prevData,
-            signature: null,
-        }));
-    };
-
     // Dynamic label and placeholder based on selection type and employee status
     const getEventFieldLabel = () => {
         // If Visitors, always show "Purpose of visit"
@@ -231,24 +197,13 @@ function OurCampus() {
             return 'Purpose of visit';
         }
         
-        // If Employee, use enhanced selection logic
-        if (formData.employeeStatus === 'Employee') {
-            switch (campusData.selectionType) {
-                case 'feedback':
-                    return 'Feedback Topic';
-                case 'new idea':
-                    return 'New Idea Title';
-                case 'escalation':
-                    return 'Escalation Subject';
-                case 'event':
-                    return 'Name of Event';
-                default:
-                    return 'Name of Event';
-            }
+        // For campus feedback categories, show appropriate event field label
+        if (campusData.selectionType === 'others-suggestions') {
+            return 'Topic/Subject';
         }
         
-        // Default logic for other employee statuses
-        return campusData.selectionType === 'event' ? 'Name of Event' : 'Others Name';
+        // For all other campus categories, show generic event/activity name
+        return 'Event/Activity Name';
     };
 
     const getEventFieldPlaceholder = () => {
@@ -257,24 +212,13 @@ function OurCampus() {
             return 'Enter purpose of visit';
         }
         
-        // If Employee, use enhanced selection logic
-        if (formData.employeeStatus === 'Employee') {
-            switch (campusData.selectionType) {
-                case 'feedback':
-                    return 'Enter feedback topic';
-                case 'new idea':
-                    return 'Enter new idea title';
-                case 'escalation':
-                    return 'Enter escalation subject';
-                case 'event':
-                    return 'Enter event name';
-                default:
-                    return 'Enter event name';
-            }
+        // For campus feedback categories, show appropriate placeholder
+        if (campusData.selectionType === 'others-suggestions') {
+            return 'Enter topic or subject';
         }
         
-        // Default logic for other employee statuses
-        return campusData.selectionType === 'event' ? 'Enter event name' : 'Enter others name';
+        // For all other campus categories
+        return 'Enter event or activity name';
     };
 
     const getDateFieldLabel = () => {
@@ -295,55 +239,18 @@ function OurCampus() {
         return 'Select event date';
     };
 
-    // Dynamic dropdown options based on employee status
-    const getSelectionOptions = () => {
-        if (formData.employeeStatus === 'Employee') {
-            return (
-                <>
-                    <option value="feedback">Feedback</option>
-                    <option value="new idea">New Idea</option>
-                    <option value="escalation">Escalation</option>
-                    <option value="event">Event</option>
-                </>
-            );
-        }
-        
-        // Default options for other statuses
-        return (
-            <>
-                <option value="event">Event</option>
-                <option value="others">Others</option>
-            </>
-        );
-    };
-
     const validateForm = () => {
         const newErrors = {};
         
-        if (!campusData.selectionType) newErrors.selectionType = 'Selection type is required.';
+        if (!campusData.selectionType) newErrors.selectionType = 'Feedback category is required.';
         if (!campusData.eventName) {
             let fieldName;
             if (formData.employeeStatus === 'Visitors') {
                 fieldName = 'Purpose of visit';
-            } else if (formData.employeeStatus === 'Employee') {
-                switch (campusData.selectionType) {
-                    case 'feedback':
-                        fieldName = 'Feedback Topic';
-                        break;
-                    case 'new idea':
-                        fieldName = 'New Idea Title';
-                        break;
-                    case 'escalation':
-                        fieldName = 'Escalation Subject';
-                        break;
-                    case 'event':
-                        fieldName = 'Event Name';
-                        break;
-                    default:
-                        fieldName = 'Event Name';
-                }
+            } else if (campusData.selectionType === 'others-suggestions') {
+                fieldName = 'Topic/Subject';
             } else {
-                fieldName = campusData.selectionType === 'event' ? 'Event Name' : 'Others Name';
+                fieldName = 'Event/Activity Name';
             }
             newErrors.eventName = `${fieldName} is required.`;
         }
@@ -371,8 +278,8 @@ function OurCampus() {
     const handleSubmit = async (e) => {
         e.preventDefault();
  
-        if (!validateForm() || !campusData.signature) {
-            toast.error('Please complete the form and add your signature.');
+        if (!validateForm()) {
+            toast.error('Please complete all required fields.');
             return;
         }
  
@@ -388,7 +295,7 @@ function OurCampus() {
             const year = campusData.eventDate.getFullYear();
             const formattedDate = `${day}/${month}/${year}`;
 
-            // Create payload object
+            // Create payload object (without signature)
             const payload = {
                 // Domain landing form data
                 firstName: formData.firstName || '',
@@ -400,7 +307,7 @@ function OurCampus() {
                 employeeType: formData.employeeType || '',
                 employeeStatus: formData.employeeStatus || '',
                 // Campus form data
-                selectionType: campusData.selectionType, // Include selection type
+                selectionType: campusData.selectionType,
                 eventName: campusData.eventName,
                 visitDate: formattedDate,
                 name: campusData.name,
@@ -408,7 +315,6 @@ function OurCampus() {
                 userType: campusData.userType,
                 staffId: campusData.staffId || '',
                 feedback: campusData.feedback,
-                signature: campusData.signature,
                 selfieImage: selfieBase64
             };
 
@@ -481,15 +387,15 @@ function OurCampus() {
                             <button className="campus-form-back-button-alt" onClick={handleBack}>
                                 <FaChevronLeft />
                             </button>
-                            <p className="campus-form-title-alt">Campus Feedback</p>
+                            <p className="campus-form-title-alt">Our Campus </p>
                         </div>
 
-                        <form className="campus-form-grid-alt" noValidate ref={formRef} style={{ width: '100%', maxWidth: '100%', overflowX: 'hidden', boxSizing: 'border-box' }}>
-                            {/* New Selection Type Dropdown */}
+                        <form className="campus-form-grid-alt" onSubmit={handleSubmit} noValidate ref={formRef} style={{ width: '100%', maxWidth: '100%', overflowX: 'hidden', boxSizing: 'border-box' }}>
+                            {/* Campus Feedback Category Dropdown */}
                             <div className="campus-form-group-alt" style={{ width: '100%', maxWidth: '100%' }}>
                                 <label htmlFor="selectionType" className="campus-form-label-alt">
                                     <MdOutlineCategory className="campus-label-icon" />
-                                    Selection Type
+                                    Feedback Category
                                 </label>
                                 <select
                                     id="selectionType"
@@ -506,12 +412,24 @@ function OurCampus() {
                                     }}
                                     disabled={isSubmitting}
                                 >
-                                    {getSelectionOptions()}
+                                    <option value="">Select Category</option>
+                                    <option value="infrastructure">Infrastructure</option>
+                                    <option value="cleanliness">Cleanliness</option>
+                                    <option value="maintenance">Maintenance</option>
+                                    <option value="security">Security</option>
+                                    <option value="cafeteria">Cafeteria</option>
+                                    <option value="hostel">Hostel</option>
+                                    <option value="it-wifi">IT / Wi-Fi</option>
+                                    <option value="transport-parking">Transport & Parking</option>
+                                    <option value="amenities">Amenities</option>
+                                    <option value="administration-helpdesk">Administration / Helpdesk</option>
+                                    <option value="safety">Safety</option>
+                                    <option value="others-suggestions">Others / Suggestions</option>
                                 </select>
                                 {errors.selectionType && <p className="campus-form-error-alt">{errors.selectionType}</p>}
                             </div>
 
-                            {/* Dynamic Event Name Field */}
+                            {/* Dynamic Event/Topic Name Field */}
                             <div className="campus-form-group-alt">
                                 <label htmlFor="eventName" className="campus-form-label-alt">
                                     <MdOutlineEventNote className="campus-label-icon" />
@@ -672,45 +590,14 @@ function OurCampus() {
                                 {errors.feedback && <p className="campus-form-error-alt">{errors.feedback}</p>}
                             </div>
 
-                            {/* Signature Pad */}
-                            {showSignaturePad ? (
-                                <div className="campus-signature-container" ref={signatureRef}>
-                                    <p className="campus-signature-heading">Please sign below:</p>
-                                    <SignaturePad
-                                        ref={sigCanvas}
-                                        penColor='#3d2c20'
-                                        canvasProps={{ width: 450, height: 200, className: 'campus-signature-canvas' }}
-                                        onEnd={handleSignatureEnd}
-                                    />
-                                    <div className="campus-signature-buttons">
-                                        <button
-                                            type="button"
-                                            className="clear-button-alt"
-                                            onClick={handleClearSignature}
-                                            disabled={isSubmitting}
-                                        >
-                                            Clear
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className="campus-submit-button-alt"
-                                            onClick={handleSubmit}
-                                            disabled={isSubmitting}
-                                        >
-                                            {isSubmitting ? 'Submitting...' : 'Submit Feedback'}
-                                        </button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <button
-                                    type="button"
-                                    className="campus-form-submit-button-alt"
-                                    onClick={handleSignatureStart}
-                                    disabled={isSubmitting}
-                                >
-                                    Signature
-                                </button>
-                            )}
+                            {/* Direct Submit Button */}
+                            <button
+                                type="submit"
+                                className="campus-form-submit-button-alt"
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? 'Posting...' : 'Post Feedback'}
+                            </button>
                         </form>
                     </div>
                 </div>
