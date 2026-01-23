@@ -29,13 +29,18 @@ body {
 .employeeForm-mainhead{
     width: 100%;
 }
+.emp-form-split-container{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
 /* Main wrapper for the entire form screen */
 .emp-form-main-wrapper {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
-    padding: 1rem;
+    /* min-height: 100vh; */
+    padding: 1rem 0 rem;
     position: relative;
     overflow-x: hidden; /* Prevents horizontal scrolling */
     z-index: 10;
@@ -61,12 +66,19 @@ body {
     /* Add hardware acceleration for smoother rendering */
     transform: translateZ(0);
 }
-
+.emp-form-sign{
+     height: 30px;  /* adjust as needed */
+    width: 80px;
+}
 .emp-form-logo-container {
-    position: absolute;
+    display:flex ;
+    justify-content: space-between;
+    align-items: baseline;
+    position: relative;
     top: 15px;
     right: 10%;
     z-index: 10;
+    padding: 10px 0px 20px 60px;
   }
   .emp-form-input::placeholder {
   color: #333333 !important;
