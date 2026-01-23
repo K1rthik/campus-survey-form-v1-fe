@@ -3,6 +3,7 @@ import { FaUser, FaEnvelope, FaPhone, FaVenusMars, FaBriefcase, FaIdBadge, FaChe
 import { useNavigate } from 'react-router-dom';
 import backgroundImage from '../assets/wave2.jpg';
 import kgisl_logo from '../assets/kgisl_logo_bg.png';
+import signature from '../assets/siKGnatureV1.png';
 import '../styles/EmployeeForm.css';
 
 function EmployeeForm() {
@@ -206,8 +207,9 @@ function EmployeeForm() {
       <div className="emp-form-background-image-container">
         <img src={backgroundImage} alt="Background Wave Pattern" className="emp-form-background-image" />
       </div>
-
+<div className='emp-form-split-container'>
       <div className="emp-form-logo-container">
+        <img src={signature} alt="KGISL Logo" className="emp-form-sign" />
         <img src={kgisl_logo} alt="KGISL Logo" className="emp-form-logo" />
       </div>
 
@@ -399,6 +401,7 @@ function EmployeeForm() {
             </div>
           </form>
         </div>
+      </div>
       </div>
     </div>
   );
