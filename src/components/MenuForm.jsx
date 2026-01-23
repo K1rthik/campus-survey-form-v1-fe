@@ -4,7 +4,6 @@ import { FaChevronLeft } from 'react-icons/fa';
 import { MdOutlineEventNote, MdOutlinePerson, MdOutlinePhone, MdGroup, MdOutlinePhotoCamera, MdOutlineDateRange, MdOutlineCategory } from 'react-icons/md';
 import { TfiWrite } from 'react-icons/tfi';
 import Lottie from 'react-lottie';
-import SignaturePad from 'react-signature-canvas';
 import toast, { Toaster } from 'react-hot-toast';
 import DatePicker from 'react-datepicker';
 import * as CryptoJS from 'crypto-js';
@@ -154,7 +153,7 @@ function MenuForm() {
   const formData = location.state?.formData || {};
 
   const [menuData, setMenuData] = useState({
-    selectionType: 'event', // New field for dropdown selection
+    selectionType: '', // Feedback category selection
     eventName: '',
     eventDate: new Date(),
     name: '',
@@ -163,18 +162,14 @@ function MenuForm() {
     idNumber: '',
     feedback: '',
     selfie: null,
-    signature: null,
   });
 
   const [errors, setErrors] = useState({});
   const [showIdNumber, setShowIdNumber] = useState(false);
   const [selfiePreview, setSelfiePreview] = useState(null);
-  const [showSignaturePad, setShowSignaturePad] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const sigCanvas = useRef({});
   const formRef = useRef(null);
-  const signatureRef = useRef(null);
   const feedbackRef = useRef(null);
 
   useEffect(() => {
@@ -288,39 +283,18 @@ function MenuForm() {
     }
   };
 
-  const handleSignatureStart = () => {
-    if (validateForm()) {
-      setShowSignaturePad(true);
-      setTimeout(() => {
-        if (signatureRef.current) {
-          signatureRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }, 100);
-    }
-  };
-
-  const handleSignatureEnd = () => {
-    if (!sigCanvas.current.isEmpty()) {
-      const dataUrl = sigCanvas.current.toDataURL('image/jpeg', 0.85);
-      setMenuData(prevData => ({ ...prevData, signature: dataUrl }));
-    }
-  };
-
-  const handleClearSignature = () => {
-    sigCanvas.current.clear();
-    setMenuData(prevData => ({ ...prevData, signature: null }));
-  };
-
   const validateForm = () => {
     const newErrors = {};
     
-    if (!menuData.selectionType) newErrors.selectionType = 'Selection type is required.';
+    if (!menuData.selectionType) newErrors.selectionType = 'Feedback category is required.';
     if (!menuData.eventName) {
       let fieldName;
       if (formData.employeeStatus === 'Visitors') {
         fieldName = 'Purpose of visit';
+      } else if (menuData.selectionType === 'others-suggestions') {
+        fieldName = 'Topic/Subject';
       } else {
-        fieldName = menuData.selectionType === 'event' ? 'Event Name' : 'Others Name';
+        fieldName = 'Event/Activity Name';
       }
       newErrors.eventName = `${fieldName} is required.`;
     }
@@ -347,19 +321,19 @@ function MenuForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!(validateForm() && menuData.signature)) {
-      toast.error('Please complete the form and add your signature.');
+    if (!validateForm()) {
+      toast.error('Please complete all required fields.');
       return;
     }
 
     try {
-      // Convert selfie and signature to Base64
+      // Convert selfie to Base64
       const selfieBase64 = await fileToBase64(menuData.selfie);
 
       // Derive names for backend
       const { firstName, lastName } = deriveNameParts(formData, menuData);
 
-      // Create payload object
+      // Create payload object (without signature)
       const payload = {
         firstName,
         lastName,
@@ -370,22 +344,18 @@ function MenuForm() {
         employeeStatus: formData.employeeStatus || '',
         employeeType: formData.employeeType || '',
         employeeId: formData.employeeId || '',
-        selectionType: menuData.selectionType, // Include selection type
+        selectionType: menuData.selectionType,
         eventName: menuData.eventName,
         eventDate: menuData.eventDate ? format(menuData.eventDate, 'dd/MM/yyyy') : '',
         visitorType: menuData.visitorType,
         idNumber: menuData.visitorType === 'Staff' ? (menuData.idNumber || '') : '',
         feedback: menuData.feedback || '',
         formType: 'MenuFeedback',
-        selfie: selfieBase64,
-        signature: menuData.signature
+        selfie: selfieBase64
       };
-
-      //console.log('Payload to encrypt:', payload);
 
       // Encrypt the payload
       const envelope = encryptClient(payload);
-      //console.log('Encrypted envelope:', envelope);
 
       if (!envelope || !envelope.startsWith('v:1,')) {
         throw new Error('Encryption failed - invalid envelope format');
@@ -400,11 +370,8 @@ function MenuForm() {
         body: JSON.stringify({ envelope })
       });
 
-      //console.log('Response status:', response.status);
-
       // Get encrypted response
       const encryptedResult = await response.json();
-      //console.log('Encrypted response:', encryptedResult);
 
       // Decrypt response
       let result;
@@ -413,7 +380,6 @@ function MenuForm() {
           throw new Error('No envelope in response');
         }
         result = decryptClient(encryptedResult.envelope);
-        //console.log('Decrypted result:', result);
       } catch (decryptError) {
         console.error('Decryption error:', decryptError);
         console.error('Response was:', encryptedResult);
@@ -422,7 +388,6 @@ function MenuForm() {
       }
 
       if (response.ok) {
-        //console.log('Submission successful:', result);
         setShowSuccess(true);
         toast.success(result.message || 'Feedback submitted successfully!');
         setTimeout(() => {
@@ -448,8 +413,12 @@ function MenuForm() {
     if (formData.employeeStatus === 'Visitors') {
       return 'Purpose of visit';
     }
-    // Otherwise use selection type logic
-    return menuData.selectionType === 'event' ? 'Name of Event' : 'Others Name';
+    // For feedback categories, show appropriate event field label
+    if (menuData.selectionType === 'others-suggestions') {
+      return 'Topic/Subject';
+    }
+    // For all other feedback categories, show generic event name
+    return 'Event/Activity Name';
   };
 
   const getEventFieldPlaceholder = () => {
@@ -457,8 +426,12 @@ function MenuForm() {
     if (formData.employeeStatus === 'Visitors') {
       return 'Enter purpose of visit';
     }
-    // Otherwise use selection type logic
-    return menuData.selectionType === 'event' ? 'Enter event name' : 'Enter others name';
+    // For feedback categories, show appropriate placeholder
+    if (menuData.selectionType === 'others-suggestions') {
+      return 'Enter topic or subject';
+    }
+    // For all other feedback categories
+    return 'Enter event or activity name';
   };
 
   const getDateFieldLabel = () => {
@@ -496,15 +469,15 @@ function MenuForm() {
               <button className="menu-form-back-button-alt" onClick={handleBack}>
                 <FaChevronLeft />
               </button>
-              <p className="menu-form-title-alt">Menu Feedback</p>
+              <p className="menu-form-title-alt">Event</p>
             </div>
 
-            <form className="menu-form-grid-alt" noValidate ref={formRef} style={{ width: '100%', maxWidth: '100%', overflowX: 'hidden', boxSizing: 'border-box' }}>
+            <form className="menu-form-grid-alt" onSubmit={handleSubmit} noValidate ref={formRef} style={{ width: '100%', maxWidth: '100%', overflowX: 'hidden', boxSizing: 'border-box' }}>
               {/* New Selection Type Dropdown */}
               <div className="menu-form-group-alt" style={{ width: '100%', maxWidth: '100%' }}>
                 <label htmlFor="selectionType" className="menu-form-label-alt">
                   <MdOutlineCategory className="menu-label-icon" />
-                  Selection Type
+                  Feedback Category
                 </label>
                 <select
                   id="selectionType"
@@ -520,13 +493,23 @@ function MenuForm() {
                     textOverflow: 'ellipsis'
                   }}
                 >
-                  <option value="event">Event</option>
-                  <option value="others">Others</option>
+                  <option value="">Select Category</option>
+                  <option value="overall-experience">Overall Experience</option>
+                  <option value="event-organization">Event Organization</option>
+                  <option value="entry-process">Entry Process / Registration</option>
+                  <option value="venue-infrastructure">Venue & Infrastructure</option>
+                  <option value="seating-arrangements">Seating & Arrangements</option>
+                  <option value="food-refreshments">Food & Refreshments</option>
+                  <option value="hospitality-staff">Hospitality & Support Staff</option>
+                  <option value="audio-visual">Audio-Visual</option>
+                  <option value="cleanliness-hygiene">Cleanliness & Hygiene</option>
+                  <option value="security-safety">Security & Safety</option>
+                  <option value="others-suggestions">Others / Suggestions</option>
                 </select>
                 {errors.selectionType && <p className="menu-form-error-alt">{errors.selectionType}</p>}
               </div>
 
-              {/* Dynamic Event Name Field */}
+              {/* Dynamic Event/Topic Name Field */}
               <div className="menu-form-group-alt">
                 <label htmlFor="eventName" className="menu-form-label-alt">
                   <MdOutlineEventNote className="menu-label-icon" />
@@ -672,41 +655,13 @@ function MenuForm() {
                 />
               </div>
 
-              {showSignaturePad ? (
-                <div className="menu-signature-container" ref={signatureRef}>
-                  <p className="menu-signature-heading">Please sign below:</p>
-                  <SignaturePad
-                    ref={sigCanvas}
-                    penColor="#3d2c20"
-                    canvasProps={{ width: 450, height: 200, className: 'menu-signature-canvas' }}
-                    onEnd={handleSignatureEnd}
-                  />
-                  <div className="menu-signature-buttons">
-                    <button
-                      type="button"
-                      className="clear-button-alt"
-                      onClick={handleClearSignature}
-                    >
-                      Clear
-                    </button>
-                    <button
-                      type="button"
-                      className="menu-submit-button-alt"
-                      onClick={handleSubmit}
-                    >
-                      Submit
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  className="menu-form-submit-button-alt"
-                  onClick={handleSignatureStart}
-                >
-                  Signature
-                </button>
-              )}
+              {/* Direct Submit Button */}
+              <button
+                type="submit"
+                className="menu-form-submit-button-alt"
+              >
+                Post Feedback
+              </button>
             </form>
           </div>
         </div>
