@@ -4,7 +4,6 @@ import { FaChevronLeft } from 'react-icons/fa';
 import { MdOutlineEventNote, MdOutlinePerson, MdOutlinePhone, MdGroup, MdOutlinePhotoCamera, MdOutlineDateRange, MdOutlineCategory} from 'react-icons/md';
 import { TfiWrite } from 'react-icons/tfi';
 import Lottie from 'react-lottie';
-import SignaturePad from 'react-signature-canvas';
 import toast, { Toaster } from 'react-hot-toast';
 import DatePicker from 'react-datepicker';
 import * as CryptoJS from 'crypto-js';
@@ -154,7 +153,7 @@ function CafeteriaForm() {
 console.log("formData==>",formData);
 
   const [cafeteriaData, setCafeteriaData] = useState({
-    selectionType: 'event', // New field for dropdown selection
+    selectionType: '', // Cafeteria feedback category selection
     eventName: '',
     eventDate: new Date(),
     name: '',
@@ -163,18 +162,14 @@ console.log("formData==>",formData);
     idNumber: '',
     feedback: '',
     selfie: null,
-    signature: null,
   });
 
   const [errors, setErrors] = useState({});
   const [showIdNumber, setShowIdNumber] = useState(false);
   const [selfiePreview, setSelfiePreview] = useState(null);
-  const [showSignaturePad, setShowSignaturePad] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const sigCanvas = useRef({});
   const formRef = useRef(null);
-  const signatureRef = useRef(null);
   const feedbackRef = useRef(null);
 
   useEffect(() => {
@@ -278,29 +273,6 @@ console.log("formData==>",formData);
     }
   };
 
-  const handleSignatureStart = () => {
-    if (validateForm()) {
-      setShowSignaturePad(true);
-      setTimeout(() => {
-        if (signatureRef.current) {
-          signatureRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }, 100);
-    }
-  };
-
-  const handleSignatureEnd = () => {
-    if (!sigCanvas.current.isEmpty()) {
-      const dataUrl = sigCanvas.current.toDataURL('image/jpeg', 0.85);
-      setCafeteriaData(prev => ({ ...prev, signature: dataUrl }));
-    }
-  };
-
-  const handleClearSignature = () => {
-    sigCanvas.current.clear();
-    setCafeteriaData(prev => ({ ...prev, signature: null }));
-  };
-
   // Dynamic label and placeholder based on selection type and employee status
   const getEventFieldLabel = () => {
     // If Visitors, always show "Purpose of visit"
@@ -308,22 +280,13 @@ console.log("formData==>",formData);
       return 'Purpose of visit';
     }
     
-    // If Employee, use enhanced selection logic
-    if (formData.employeeStatus === 'Employee') {
-      switch (cafeteriaData.selectionType) {
-        case 'event':
-          return 'Name of Event';
-        case 'regular':
-          return 'Regular Activity';
-        case 'other':
-          return 'Others Name';
-        default:
-          return 'Name of Event';
-      }
+    // For cafeteria feedback categories, show appropriate event field label
+    if (cafeteriaData.selectionType === 'others-suggestions') {
+      return 'Topic/Subject';
     }
     
-    // Default logic for other employee statuses
-    return cafeteriaData.selectionType === 'event' ? 'Name of Event' : 'Others Name';
+    // For all other cafeteria categories, show generic event/activity name
+    return 'Event/Activity Name';
   };
 
   const getEventFieldPlaceholder = () => {
@@ -332,22 +295,13 @@ console.log("formData==>",formData);
       return 'Enter purpose of visit';
     }
     
-    // If Employee, use enhanced selection logic
-    if (formData.employeeStatus === 'Employee') {
-      switch (cafeteriaData.selectionType) {
-        case 'event':
-          return 'Enter event name';
-        case 'regular':
-          return 'Enter regular activity';
-        case 'other':
-          return 'Enter others name';
-        default:
-          return 'Enter event name';
-      }
+    // For cafeteria feedback categories, show appropriate placeholder
+    if (cafeteriaData.selectionType === 'others-suggestions') {
+      return 'Enter topic or subject';
     }
     
-    // Default logic for other employee statuses
-    return cafeteriaData.selectionType === 'event' ? 'Enter event name' : 'Enter others name';
+    // For all other cafeteria categories
+    return 'Enter event or activity name';
   };
 
   const getDateFieldLabel = () => {
@@ -368,51 +322,18 @@ console.log("formData==>",formData);
     return 'Select event date';
   };
 
-  // Dynamic dropdown options based on employee status
-  const getSelectionOptions = () => {
-    if (formData.employeeStatus === 'Employee') {
-      return (
-        <>
-          <option value="event">Event</option>
-          <option value="regular">Regular</option>
-          <option value="other">Other</option>
-        </>
-      );
-    }
-    
-    // Default options for other statuses
-    return (
-      <>
-        <option value="event">Event</option>
-        <option value="others">Others</option>
-      </>
-    );
-  };
-
   const validateForm = () => {
     const newErrors = {};
     
-    if (!cafeteriaData.selectionType) newErrors.selectionType = 'Selection type is required.';
+    if (!cafeteriaData.selectionType) newErrors.selectionType = 'Feedback category is required.';
     if (!cafeteriaData.eventName) {
       let fieldName;
       if (formData.employeeStatus === 'Visitors') {
         fieldName = 'Purpose of visit';
-      } else if (formData.employeeStatus === 'Employee') {
-        switch (cafeteriaData.selectionType) {
-          case 'event':
-            fieldName = 'Event Name';
-            break;
-          case 'regular':
-            fieldName = 'Regular Activity';
-            break;
-          case 'other':
-            fieldName = 'Others Name';
-            break;
-          default:
-            fieldName = 'Event Name';
-        }
+      } else if (cafeteriaData.selectionType === 'others-suggestions') {
+        fieldName = 'Topic/Subject';
       } else {
-        fieldName = cafeteriaData.selectionType === 'event' ? 'Event Name' : 'Others Name';
+        fieldName = 'Event/Activity Name';
       }
       newErrors.eventName = `${fieldName} is required.`;
     }
@@ -441,8 +362,8 @@ console.log("formData==>",formData);
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!(validateForm() && cafeteriaData.signature)) {
-      toast.error('Please complete the form and add your signature.');
+    if (!validateForm()) {
+      toast.error('Please complete all required fields.');
       return;
     }
 
@@ -452,13 +373,13 @@ console.log("formData==>",formData);
     }
 
     try {
-      // Convert selfie and signature to Base64
+      // Convert selfie to Base64
       const selfieBase64 = await fileToBase64(cafeteriaData.selfie);
 
       // Derive names for backend
       const { firstName, lastName } = deriveNameParts(formData, cafeteriaData);
 
-      // Create payload object
+      // Create payload object (without signature)
       const payload = {
         firstName,
         lastName,
@@ -469,22 +390,18 @@ console.log("formData==>",formData);
         employeeStatus: formData.employeeStatus || '',
         employeeType: formData.employeeType || '',
         employeeId: formData.employeeId || '',
-        selectionType: cafeteriaData.selectionType, // Include selection type
+        selectionType: cafeteriaData.selectionType,
         eventName: cafeteriaData.eventName,
         eventDate: cafeteriaData.eventDate ? format(cafeteriaData.eventDate, 'dd/MM/yyyy') : '',
         visitorType: cafeteriaData.visitorType,
         idNumber: cafeteriaData.visitorType === 'Staff' ? (cafeteriaData.idNumber || '') : '',
         feedback: cafeteriaData.feedback || '',
         formType: 'CafeteriaFeedback',
-        selfie: selfieBase64,
-        signature: cafeteriaData.signature
+        selfie: selfieBase64
       };
-
-      //console.log('Payload to encrypt:', payload);
 
       // Encrypt the payload
       const envelope = encryptClient(payload);
-      //console.log('Encrypted envelope:', envelope);
 
       if (!envelope || !envelope.startsWith('v:1,')) {
         throw new Error('Encryption failed - invalid envelope format');
@@ -499,11 +416,8 @@ console.log("formData==>",formData);
         body: JSON.stringify({ envelope })
       });
 
-      //console.log('Response status:', response.status);
-
       // Get encrypted response
       const encryptedResult = await response.json();
-      //console.log('Encrypted response:', encryptedResult);
 
       // Decrypt response
       let result;
@@ -512,7 +426,6 @@ console.log("formData==>",formData);
           throw new Error('No envelope in response');
         }
         result = decryptClient(encryptedResult.envelope);
-        //console.log('Decrypted result:', result);
       } catch (decryptError) {
         console.error('Decryption error:', decryptError);
         console.error('Response was:', encryptedResult);
@@ -521,7 +434,6 @@ console.log("formData==>",formData);
       }
 
       if (response.ok) {
-        //console.log('Submission successful:', result);
         setShowSuccess(true);
         toast.success(result.message || 'Feedback submitted successfully!');
         setTimeout(() => {
@@ -561,12 +473,12 @@ console.log("formData==>",formData);
               <p className="cafeteria-form-title">Cafeteria Feedback</p>
             </div>
 
-            <form className="cafeteria-form-grid" noValidate ref={formRef} style={{ width: '100%', maxWidth: '100%', overflowX: 'hidden', boxSizing: 'border-box' }}>
-              {/* New Selection Type Dropdown */}
+            <form className="cafeteria-form-grid" onSubmit={handleSubmit} noValidate ref={formRef} style={{ width: '100%', maxWidth: '100%', overflowX: 'hidden', boxSizing: 'border-box' }}>
+              {/* Cafeteria Feedback Category Dropdown */}
               <div className="cafeteria-form-group" style={{ width: '100%', maxWidth: '100%' }}>
                 <label htmlFor="selectionType" className="cafeteria-form-label">
                   <MdOutlineCategory className="cafeteria-label-icon" />
-                  Selection Type
+                  Feedback Category
                 </label>
                 <select
                   id="selectionType"
@@ -582,12 +494,21 @@ console.log("formData==>",formData);
                     textOverflow: 'ellipsis'
                   }}
                 >
-                  {getSelectionOptions()}
+                  <option value="">Select Category</option>
+                  <option value="food-quality">Food Quality</option>
+                  <option value="menu-variety">Menu & Variety</option>
+                  <option value="hygiene-cleanliness">Hygiene & Cleanliness</option>
+                  <option value="service-staff">Service & Staff</option>
+                  <option value="waiting-time">Waiting Time</option>
+                  <option value="kafe-app">Kafe App / Online Ordering</option>
+                  <option value="item-availability">Item Availability</option>
+                  <option value="seating-ambience">Seating & Ambience</option>
+                  <option value="others-suggestions">Others / Suggestions</option>
                 </select>
                 {errors.selectionType && <p className="cafeteria-form-error">{errors.selectionType}</p>}
               </div>
 
-              {/* Dynamic Event Name Field */}
+              {/* Dynamic Event/Topic Name Field */}
               <div className="cafeteria-form-group">
                 <label htmlFor="eventName" className="cafeteria-form-label">
                   <MdOutlineEventNote className="cafeteria-label-icon" />
@@ -733,29 +654,13 @@ console.log("formData==>",formData);
                 />
               </div>
 
-              {showSignaturePad ? (
-                <div className="cafeteria-signature-container" ref={signatureRef}>
-                  <p className="cafeteria-signature-heading">Please sign below:</p>
-                  <SignaturePad
-                    ref={sigCanvas}
-                    penColor="#3d2c20"
-                    canvasProps={{ width: 450, height: 200, className: 'cafeteria-signature-canvas' }}
-                    onEnd={handleSignatureEnd}
-                  />
-                  <div className="cafeteria-signature-buttons">
-                    <button type="button" className="clear-button" onClick={handleClearSignature}>
-                      Clear
-                    </button>
-                    <button type="button" className="cafeteria-submit-button" onClick={handleSubmit}>
-                      Submit
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <button type="button" className="cafeteria-form-submit-button" onClick={handleSignatureStart}>
-                  Signature
-                </button>
-              )}
+              {/* Direct Submit Button */}
+              <button
+                type="submit"
+                className="cafeteria-form-submit-button"
+              >
+                 Post Feedback
+              </button>
             </form>
           </div>
         </div>
