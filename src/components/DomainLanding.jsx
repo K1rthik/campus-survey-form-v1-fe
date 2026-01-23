@@ -78,8 +78,8 @@ const fromEmployeeForm = location.state?.fromEmployeeForm || false;
                   <img src={theMenuImage} alt="The Menu" className="domain-landing-card-image" />
                 </div>
                 <div className="domain-landing-card-right">
-                  <h2 className="domain-landing-card-title">The Menu</h2>
-                  <p className="domain-landing-card-subtitle">Explore dining options</p>
+                  <h2 className="domain-landing-card-title">Event</h2>
+                  <p className="domain-landing-card-subtitle">Explore event options</p>
                 </div>
               </div>
             </div>
@@ -120,7 +120,7 @@ const fromEmployeeForm = location.state?.fromEmployeeForm || false;
             <div className="domain-landing-card domain-landing-card-security">
               <div className="domain-landing-card-content">
                 <div className="domain-landing-card-right">
-                  <h2 className="domain-landing-card-title">Security</h2>
+                  <h2 className="domain-landing-card-title">Grievance</h2>
                   <p className="domain-landing-card-subtitle">Access safety guidelines</p>
                 </div>
                 <div className="domain-landing-card-left">
