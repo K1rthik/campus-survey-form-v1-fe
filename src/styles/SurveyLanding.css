@@ -100,7 +100,7 @@
 
 .landing-container {
   width: 100vw;
-  min-height: 100vh;
+  /* min-height: 100vh; */
   position: relative;
   transition: all 1.2s ease;
   font-family: "Inter", sans-serif;
